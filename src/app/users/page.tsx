@@ -66,7 +66,7 @@ export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState<string>('all');
   const [selectedRole, setSelectedRole] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('active');
   const [selectedDesignation, setSelectedDesignation] = useState<string>('all');
   const [filterReviewRequiredOnly, setFilterReviewRequiredOnly] = useState(false);
 
@@ -658,31 +658,55 @@ export default function UsersPage() {
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 bg-white rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs space-y-1">
+        <div
+          onClick={() => { setSelectedStatus('all'); setFilterReviewRequiredOnly(false); }}
+          className={cn(
+            'p-3.5 rounded-xl border shadow-2xs space-y-1 cursor-pointer transition',
+            selectedStatus === 'all' && !filterReviewRequiredOnly
+              ? 'bg-slate-50 border-crm-brand-600 ring-2 ring-crm-brand-600/20'
+              : 'bg-white border-[color:var(--crm-border-default)] hover:border-slate-300'
+          )}
+        >
           <div className="flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
-            <span>Total Staff</span>
+            <span className="font-semibold">Total Staff</span>
             <Users className="w-4 h-4 text-crm-brand-700" />
           </div>
           <p suppressHydrationWarning className="text-xl font-extrabold text-slate-900">{safeEmployees.length}</p>
-          <span className="text-[10px] text-slate-500">Registered records</span>
+          <span className="text-[10px] text-slate-500">All registered records</span>
         </div>
 
-        <div className="p-3.5 bg-white rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs space-y-1">
+        <div
+          onClick={() => { setSelectedStatus('active'); setFilterReviewRequiredOnly(false); }}
+          className={cn(
+            'p-3.5 rounded-xl border shadow-2xs space-y-1 cursor-pointer transition',
+            selectedStatus === 'active' && !filterReviewRequiredOnly
+              ? 'bg-emerald-50/60 border-emerald-500 ring-2 ring-emerald-500/20'
+              : 'bg-white border-[color:var(--crm-border-default)] hover:border-emerald-300'
+          )}
+        >
           <div className="flex items-center justify-between text-xs text-emerald-700">
-            <span>Active Accounts</span>
+            <span className="font-bold">Active Accounts (Default)</span>
             <CheckCircle className="w-4 h-4 text-emerald-600" />
           </div>
           <p suppressHydrationWarning className="text-xl font-extrabold text-emerald-800">{activeCount}</p>
-          <span className="text-[10px] text-emerald-600 font-medium">Authorized to login</span>
+          <span className="text-[10px] text-emerald-600 font-medium">Currently working staff</span>
         </div>
 
-        <div className="p-3.5 bg-white rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs space-y-1">
+        <div
+          onClick={() => { setSelectedStatus('inactive'); setFilterReviewRequiredOnly(false); }}
+          className={cn(
+            'p-3.5 rounded-xl border shadow-2xs space-y-1 cursor-pointer transition',
+            selectedStatus === 'inactive' && !filterReviewRequiredOnly
+              ? 'bg-rose-50/60 border-rose-500 ring-2 ring-rose-500/20'
+              : 'bg-white border-[color:var(--crm-border-default)] hover:border-rose-300'
+          )}
+        >
           <div className="flex items-center justify-between text-xs text-rose-700">
-            <span>Inactive Accounts</span>
+            <span className="font-semibold">Inactive / Ex-Staff</span>
             <XCircle className="w-4 h-4 text-rose-600" />
           </div>
           <p suppressHydrationWarning className="text-xl font-extrabold text-rose-800">{Math.max(0, safeEmployees.length - activeCount)}</p>
-          <span className="text-[10px] text-rose-600 font-medium">Deactivated / Suspended</span>
+          <span className="text-[10px] text-rose-600 font-medium">Deactivated / Left company</span>
         </div>
 
         <div
