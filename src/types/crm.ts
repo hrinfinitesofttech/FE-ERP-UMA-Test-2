@@ -114,6 +114,11 @@ export interface Employee {
   password?: string;
   isFamilyMember?: boolean;
   is_family_member?: boolean;
+  bankName?: string;
+  bankAccountNo?: string;
+  bankAccountName?: string;
+  bankIfsc?: string;
+  bankBranch?: string;
   role_type?: string;
   isActive?: boolean;
   explicitRestrictions?: string[] | any;

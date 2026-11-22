@@ -23,7 +23,8 @@ import {
   Layers,
   Clock,
   Sparkles,
-  KeyRound
+  KeyRound,
+  CreditCard,
 } from 'lucide-react';
 import { Employee } from '../../types/crm';
 import { cn } from '../../lib/utils';
@@ -255,6 +256,35 @@ export function EmployeeProfileModal({
                         {employee.address || 'Not specified'}
                       </span>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bank Account Details */}
+              <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-3">
+                <h4 className="font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider text-[11px] flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-crm-brand-700" /> Bank Account Details (સેલેરી ખાતું)
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Bank Name</span>
+                    <span className="font-semibold text-slate-800">{employee.bankName || 'Not recorded'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Account Number</span>
+                    <span className="font-mono font-bold text-slate-800">{employee.bankAccountNo ? `•••• ${employee.bankAccountNo.slice(-4)} (${employee.bankAccountNo})` : 'Not recorded'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">IFSC Code</span>
+                    <span className="font-mono font-bold text-slate-800">{employee.bankIfsc || 'Not recorded'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Account Holder</span>
+                    <span className="font-medium text-slate-800">{employee.bankAccountName || fullName}</span>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Branch Location</span>
+                    <span className="font-medium text-slate-800">{employee.bankBranch || 'Not recorded'}</span>
                   </div>
                 </div>
               </div>

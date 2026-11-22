@@ -33,7 +33,9 @@ import {
   RefreshCw,
   Sparkles,
   Layers,
-  Sliders
+  Sliders,
+  CreditCard,
+  Building2,
 } from 'lucide-react';
 import { Employee, Department, Role } from '../../types/crm';
 import { api } from '../../lib/apiClient';
@@ -86,6 +88,11 @@ export function EmployeeFormModal({
     email: '',
     address: '',
     emergencyContact: '',
+    bankName: '',
+    bankAccountNo: '',
+    bankAccountName: '',
+    bankIfsc: '',
+    bankBranch: '',
     profilePhoto: '',
     departmentId: '',
     designation: 'Staff',
@@ -143,6 +150,11 @@ export function EmployeeFormModal({
           email: employeeToEdit.email || '',
           address: employeeToEdit.address || '',
           emergencyContact: employeeToEdit.emergencyContact || '',
+          bankName: (employeeToEdit as any).bankName || (employeeToEdit as any).bank_name || '',
+          bankAccountNo: (employeeToEdit as any).bankAccountNo || (employeeToEdit as any).bank_account_no || '',
+          bankAccountName: (employeeToEdit as any).bankAccountName || (employeeToEdit as any).bank_account_name || '',
+          bankIfsc: (employeeToEdit as any).bankIfsc || (employeeToEdit as any).bank_ifsc || '',
+          bankBranch: (employeeToEdit as any).bankBranch || (employeeToEdit as any).bank_branch || '',
           profilePhoto: employeeToEdit.profilePhoto || '',
           departmentId: employeeToEdit.departmentId || departments[0]?.id || 'dept-crm',
           designation: employeeToEdit.designation || 'Staff',
@@ -207,6 +219,11 @@ export function EmployeeFormModal({
           email: '',
           address: '',
           emergencyContact: '',
+          bankName: '',
+          bankAccountNo: '',
+          bankAccountName: '',
+          bankIfsc: '',
+          bankBranch: '',
           profilePhoto: '',
           departmentId: defaultDept?.id || 'dept-crm',
           designation: 'Sales Executive',
@@ -541,6 +558,72 @@ export function EmployeeFormModal({
                 />
                 {errors.address && <p className="text-[10px] text-red-500 mt-0.5">{errors.address}</p>}
               </div>
+
+              {/* Bank Account Details */}
+              <div className="md:col-span-2 pt-3 border-t border-stone-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <CreditCard className="w-4 h-4 text-crm-brand-700" />
+                  <h4 className="text-xs font-bold text-stone-800 uppercase tracking-wider">
+                    Bank Account Details (બેંક ખાતાની વિગતો)
+                  </h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 bg-stone-50/80 p-3.5 rounded-xl border border-stone-200">
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">Bank Name</label>
+                    <input
+                      type="text"
+                      value={formData.bankName}
+                      onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+                      placeholder="e.g. State Bank of India / HDFC Bank / BOB"
+                      className="w-full px-3 py-2 text-xs bg-white border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">Account Number</label>
+                    <input
+                      type="text"
+                      value={formData.bankAccountNo}
+                      onChange={(e) => setFormData({ ...formData, bankAccountNo: e.target.value })}
+                      placeholder="e.g. 123456789012"
+                      className="w-full px-3 py-2 text-xs bg-white border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">Account Holder Name</label>
+                    <input
+                      type="text"
+                      value={formData.bankAccountName}
+                      onChange={(e) => setFormData({ ...formData, bankAccountName: e.target.value })}
+                      placeholder="e.g. Name as per bank passbook"
+                      className="w-full px-3 py-2 text-xs bg-white border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">IFSC Code</label>
+                    <input
+                      type="text"
+                      value={formData.bankIfsc}
+                      onChange={(e) => setFormData({ ...formData, bankIfsc: e.target.value.toUpperCase() })}
+                      placeholder="e.g. SBIN0001234"
+                      className="w-full px-3 py-2 text-xs bg-white border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700 font-mono uppercase"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">Branch Name / City</label>
+                    <input
+                      type="text"
+                      value={formData.bankBranch}
+                      onChange={(e) => setFormData({ ...formData, bankBranch: e.target.value })}
+                      placeholder="e.g. Kalol Highway Branch, Gandhinagar"
+                      className="w-full px-3 py-2 text-xs bg-white border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -548,17 +631,35 @@ export function EmployeeFormModal({
           {activeTab === 'employment' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Employee ID {isEditing ? '(Locked)' : '(Auto-generated if blank)'}
+                <label className="block text-xs font-semibold text-stone-700 mb-1 flex items-center justify-between">
+                  <span>Employee ID</span>
+                  {isEditing ? (
+                    <span className="text-[10px] text-amber-800 font-semibold flex items-center gap-1 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded">
+                      <Lock className="w-2.5 h-2.5" /> Locked (View Only)
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-stone-400 font-normal">Auto-generated if blank</span>
+                  )}
                 </label>
                 <input
                   type="text"
-                  disabled={isEditing && !isSuperAdmin}
+                  disabled={isEditing}
+                  readOnly={isEditing}
                   value={formData.id}
                   onChange={(e) => setFormData({ ...formData, id: e.target.value })}
                   placeholder="e.g. EMP-009"
-                  className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700 font-mono disabled:bg-stone-100"
+                  className={cn(
+                    "w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden font-mono",
+                    isEditing
+                      ? "bg-stone-100 text-stone-600 cursor-not-allowed select-none font-bold"
+                      : "focus:ring-2 focus:ring-crm-brand-700"
+                  )}
                 />
+                {isEditing && (
+                  <p className="text-[10px] text-stone-400 mt-0.5">
+                    Permanent system employee ID — cannot be edited by any user.
+                  </p>
+                )}
               </div>
 
               <div>
