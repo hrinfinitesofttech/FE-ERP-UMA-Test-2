@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
@@ -171,6 +171,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { currentUser, isAuthenticated, isAuthReady, sidebarMobileOpen, setSidebarMobileOpen } = useERP();
   const [isMounted, setIsMounted] = useState(false);
 
+  // Publish the page content area's box as CSS variables so that form / detail "modals" can be
+  // rendered as full pages that fill exactly this area (sidebar + top bar stay visible).
+  const pageAreaCleanup = useRef<(() => void) | null>(null);
+  const mainRef = useCallback((node: HTMLElement | null) => {
+    pageAreaCleanup.current?.();
+    pageAreaCleanup.current = null;
+    if (!node) return;
+    const root = document.documentElement;
+    const apply = () => {
+      const r = node.getBoundingClientRect();
+      root.style.setProperty('--page-top', `${Math.max(0, r.top)}px`);
+      root.style.setProperty('--page-left', `${Math.max(0, r.left)}px`);
+      root.style.setProperty('--page-right', `${Math.max(0, window.innerWidth - r.right)}px`);
+      root.style.setProperty('--page-bottom', `${Math.max(0, window.innerHeight - r.bottom)}px`);
+    };
+    apply();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(apply) : null;
+    ro?.observe(node);
+    window.addEventListener('resize', apply);
+    pageAreaCleanup.current = () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', apply);
+    };
+  }, []);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -243,7 +268,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0 w-full h-full overflow-hidden bg-[var(--crm-bg-app,#FCFAF7)]">
           <Topbar />
 
-          <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 scrollbar-thin bg-[var(--crm-bg-app,#FCFAF7)]">
+          <main ref={mainRef} className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 scrollbar-thin bg-[var(--crm-bg-app,#FCFAF7)]">
             {allowed ? (
               <PageTransition>
                 {children}
