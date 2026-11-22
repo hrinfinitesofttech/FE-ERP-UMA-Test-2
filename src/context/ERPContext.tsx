@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { getModule, getPageGrants, matchPageByLabel, normalizeModuleId } from '../lib/pageRegistry';
 import { usePathname } from 'next/navigation';
 import {
   Job360Full,
@@ -5457,6 +5458,19 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     // 2. Export check
     if (action === 'export' && currentUser.canExportData === false) {
       return false;
+    }
+
+    // 2b. Page-level access (Users & Employees → Access tab). Strict allow-list per page & action.
+    {
+      const pageGrants = getPageGrants(currentUser);
+      if (pageGrants) {
+        const mod = normalizeModuleId(module || '');
+        const pg = matchPageByLabel(mod, page || '');
+        if (pg) return Array.isArray(pageGrants[pg.key]) && pageGrants[pg.key].includes(action);
+        // Unknown page title: allowed if ANY page of this module grants the action
+        const m = getModule(mod);
+        return !!m && m.pages.some((p) => Array.isArray(pageGrants[p.key]) && pageGrants[p.key].includes(action));
+      }
     }
 
     // 3. Explicit restrictions check (overrides all grants)

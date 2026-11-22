@@ -40,7 +40,6 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { EmployeeFormModal } from '../../components/employees/EmployeeFormModal';
-import { PermissionMatrixModal } from '../../components/employees/PermissionMatrixModal';
 import { EmployeeProfileModal } from '../../components/employees/EmployeeProfileModal';
 import { ERPListPageLayout } from '../../components/ui/ERPListPageLayout';
 import { CustomSelect } from '../../components/ui/CustomSelect';
@@ -91,6 +90,7 @@ export default function UsersPage() {
 
   // Modal States
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [formInitialTab, setFormInitialTab] = useState<'personal' | 'employment' | 'login' | 'access'>('personal');
   const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
 
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
@@ -392,10 +392,11 @@ export default function UsersPage() {
             </button>
             <button
               onClick={() => {
-                setEmployeeForPermissions(emp);
-                setIsPermissionsModalOpen(true);
+                setEmployeeToEdit(emp);
+                setFormInitialTab('access');
+                setIsFormModalOpen(true);
               }}
-              title="Configure Granular RBAC Permissions Matrix"
+              title="Manage module & page access"
               className={cn(
                 'p-1 rounded transition cursor-pointer',
                 emp.permissionsReviewRequired
@@ -871,10 +872,12 @@ export default function UsersPage() {
 
       {/* ADD / EDIT EMPLOYEE MODAL */}
       <EmployeeFormModal
+        initialTab={formInitialTab}
         isOpen={isFormModalOpen}
         onClose={() => {
           setIsFormModalOpen(false);
           setEmployeeToEdit(null);
+          setFormInitialTab('personal');
         }}
         employeeToEdit={employeeToEdit}
         onSaved={(savedEmp) => {
@@ -883,27 +886,12 @@ export default function UsersPage() {
           );
           setIsFormModalOpen(false);
           setEmployeeToEdit(null);
+          setFormInitialTab('personal');
           setTimeout(() => setActionSuccess(''), 5000);
         }}
       />
 
-      {/* GRANULAR PERMISSIONS MATRIX MODAL */}
-      <PermissionMatrixModal
-        isOpen={isPermissionsModalOpen}
-        onClose={() => {
-          setIsPermissionsModalOpen(false);
-          setEmployeeForPermissions(null);
-        }}
-        employee={employeeForPermissions}
-        onSaved={(updatedEmp) => {
-          setActionSuccess(
-            `RBAC permission matrix for ${updatedEmp.firstName || ''} ${updatedEmp.lastName || updatedEmp.id} successfully updated.`
-          );
-          setIsPermissionsModalOpen(false);
-          setEmployeeForPermissions(null);
-          setTimeout(() => setActionSuccess(''), 5000);
-        }}
-      />
+
 
       {/* READ-ONLY EMPLOYEE PROFILE MODAL */}
       <EmployeeProfileModal
@@ -920,8 +908,9 @@ export default function UsersPage() {
         }}
         onOpenPermissions={(emp) => {
           setIsProfileModalOpen(false);
-          setEmployeeForPermissions(emp);
-          setIsPermissionsModalOpen(true);
+          setEmployeeToEdit(emp);
+          setFormInitialTab('access');
+          setIsFormModalOpen(true);
         }}
         onToggleStatus={(emp) => {
           setIsProfileModalOpen(false);

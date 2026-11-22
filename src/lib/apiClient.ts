@@ -3,6 +3,9 @@
  * Connects Next.js frontend to Django REST Framework backend on PythonAnywhere.
  */
 
+import { canDoOnPage, findPageByPath, getPageGrants, isTrueSuperAdmin, isUniversalPath } from './pageRegistry';
+import { toast } from '../context/ToastContext';
+
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'https://erpuma.pythonanywhere.com/api';
 
@@ -732,6 +735,40 @@ export function invalidateApiCache(endpointPrefix?: string) {
   }
 }
 
+
+/**
+ * Client-side guard: when the signed-in employee has page-level access configured, a write
+ * (POST/PUT/PATCH/DELETE) is allowed only if the CURRENT page grants the matching action.
+ * UX layer only — real enforcement must also exist on the server.
+ */
+const WRITE_GUARD_EXEMPT = ['/auth/', '/audit', '/notification', '/attendance-records/check', '/activity', '/my'];
+function assertPageActionAllowed(endpoint: string, method: string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = localStorage.getItem('UMA_ERP_currentUser');
+    if (!raw) return;
+    const user = JSON.parse(raw);
+    if (isTrueSuperAdmin(user) || !getPageGrants(user)) return;
+    if (WRITE_GUARD_EXEMPT.some((e) => endpoint.includes(e))) return;
+    const path = window.location.pathname;
+    if (isUniversalPath(path)) return;
+    const page = findPageByPath(path);
+    if (!page) return;
+    const ep = endpoint.toLowerCase();
+    const action =
+      method === 'DELETE' ? 'delete'
+      : ep.includes('/approve') || ep.includes('/reject') ? 'approve'
+      : method === 'POST' ? 'create'
+      : 'edit';
+    if (canDoOnPage(user, page.key, action)) return;
+    const msg = `You do not have permission to ${action} on "${page.label}".`;
+    try { toast.error(msg, 'Permission denied'); } catch (_) {}
+    throw new ApiError(403, msg, { error: msg });
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
+  }
+}
+
 export async function request<T>(
   endpoint: string,
   options: RequestInit = {},
@@ -740,6 +777,9 @@ export async function request<T>(
   const method = (options.method || 'GET').toUpperCase();
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   const cacheKey = `GET:${endpoint}`;
+
+  // 0. Page-level permission guard for writes (Users & Employees → Access tab)
+  if (method !== 'GET') assertPageActionAllowed(endpoint, method);
 
   // 1. Invalidate cache on mutations (POST, PUT, PATCH, DELETE)
   if (method !== 'GET') {

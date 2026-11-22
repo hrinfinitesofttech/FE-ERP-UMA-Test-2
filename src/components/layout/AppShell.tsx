@@ -8,11 +8,18 @@ import { JobTraceabilityModal } from '../traceability/JobTraceabilityModal';
 import { GlobalSearchModal } from '../search/GlobalSearchModal';
 import { PageTransition } from './PageTransition';
 import { useERP } from '../../context/ERPContext';
+import { canViewPageHref, getPageGrants, isTrueSuperAdmin, isUniversalPath } from '@/lib/pageRegistry';
 import { ShieldAlert, ArrowLeft, Home } from 'lucide-react';
 
 function isRouteAllowed(pathname: string, currentUser: any): boolean {
   if (!pathname || pathname === '/login' || pathname === '/forgot-password') {
     return true;
+  }
+
+  // Page-level access (configured in Users & Employees → Access tab): strict allow-list.
+  if (currentUser && !isTrueSuperAdmin(currentUser) && getPageGrants(currentUser)) {
+    if (isUniversalPath(pathname)) return true;
+    return canViewPageHref(currentUser, pathname);
   }
 
   // Universal profile & notifications

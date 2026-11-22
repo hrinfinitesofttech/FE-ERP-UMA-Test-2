@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useERP } from '../../context/ERPContext';
+import { canViewPageHref, getPageGrants, isTrueSuperAdmin, moduleHasAnyPage, normalizeModuleId } from '@/lib/pageRegistry';
 import {
   Users,
   Briefcase,
@@ -123,7 +124,7 @@ export function Sidebar() {
     ''
   ).toLowerCase();
 
-  const isSuperAdmin =
+  const legacyIsSuperAdmin =
     roleStr.includes('super admin') ||
     roleStr.includes('super_admin') ||
     roleStr.includes('managing director') ||
@@ -140,8 +141,15 @@ export function Sidebar() {
     currentUser?.username === 'hardik.daki' ||
     currentUser?.username === 'rajesh.admin';
 
+  // Page-level access (Users & Employees → Access tab). When configured, ONLY the ticked pages are shown.
+  const strictPages = !!currentUser && !!getPageGrants(currentUser) && !isTrueSuperAdmin(currentUser);
+  const isSuperAdmin = !strictPages && legacyIsSuperAdmin;
+  const pageVisible = (href: string) => !strictPages || canViewPageHref(currentUser, href);
+
   const hasModule = (moduleKey: string) => {
     const cleanK = moduleKey.toLowerCase().trim();
+
+    if (strictPages) return moduleHasAnyPage(currentUser, normalizeModuleId(cleanK));
 
     // 1. Check explicit restrictions first (overrides all grants)
     const restrictions = currentUser?.explicitRestrictions || currentUser?.explicit_restrictions;
@@ -365,11 +373,14 @@ export function Sidebar() {
 
           {(crmOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/crm" className={subNavItemClass('/crm')}>
+              {pageVisible('/crm') && (
+<Link href="/crm" className={subNavItemClass('/crm')}>
                 <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>CRM Dashboard</span>}
               </Link>
-              <Link href="/crm/leads" className={subNavItemClass('/crm/leads')}>
+)}
+              {pageVisible('/crm/leads') && (
+<Link href="/crm/leads" className={subNavItemClass('/crm/leads')}>
                 <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -382,7 +393,9 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/crm/enquiries" className={subNavItemClass('/crm/enquiries')}>
+)}
+              {pageVisible('/crm/enquiries') && (
+<Link href="/crm/enquiries" className={subNavItemClass('/crm/enquiries')}>
                 <ClipboardList className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -395,7 +408,9 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/crm/customers" className={subNavItemClass('/crm/customers')}>
+)}
+              {pageVisible('/crm/customers') && (
+<Link href="/crm/customers" className={subNavItemClass('/crm/customers')}>
                 <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -408,19 +423,27 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/crm/follow-ups" className={subNavItemClass('/crm/follow-ups')}>
+)}
+              {pageVisible('/crm/follow-ups') && (
+<Link href="/crm/follow-ups" className={subNavItemClass('/crm/follow-ups')}>
                 <PhoneCall className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Follow-ups (Today)</span>}
               </Link>
-              <Link href="/crm/visits" className={subNavItemClass('/crm/visits')}>
+)}
+              {pageVisible('/crm/visits') && (
+<Link href="/crm/visits" className={subNavItemClass('/crm/visits')}>
                 <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Site Visits</span>}
               </Link>
-              <Link href="/crm/exhibitions" className={subNavItemClass('/crm/exhibitions')}>
+)}
+              {pageVisible('/crm/exhibitions') && (
+<Link href="/crm/exhibitions" className={subNavItemClass('/crm/exhibitions')}>
                 <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Exhibitions / Expo</span>}
               </Link>
-              <Link href="/crm/quotations" className={subNavItemClass('/crm/quotations')}>
+)}
+              {pageVisible('/crm/quotations') && (
+<Link href="/crm/quotations" className={subNavItemClass('/crm/quotations')}>
                 <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -433,10 +456,13 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/crm/customer-po" className={subNavItemClass('/crm/customer-po')}>
+)}
+              {pageVisible('/crm/customer-po') && (
+<Link href="/crm/customer-po" className={subNavItemClass('/crm/customer-po')}>
                 <FileCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Customer POs</span>}
               </Link>
+)}
             </div>
           )}
         </div>
@@ -470,11 +496,14 @@ export function Sidebar() {
 
           {(projectOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/projects/dashboard" className={subNavItemClass('/projects/dashboard')}>
+              {pageVisible('/projects/dashboard') && (
+<Link href="/projects/dashboard" className={subNavItemClass('/projects/dashboard')}>
                 <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Dashboard</span>}
               </Link>
-              <Link href="/projects/list" className={subNavItemClass('/projects/list')}>
+)}
+              {pageVisible('/projects/list') && (
+<Link href="/projects/list" className={subNavItemClass('/projects/list')}>
                 <FolderKanban className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -485,11 +514,15 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/projects/planning" className={subNavItemClass('/projects/planning')}>
+)}
+              {pageVisible('/projects/planning') && (
+<Link href="/projects/planning" className={subNavItemClass('/projects/planning')}>
                 <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Project Planning</span>}
               </Link>
-              <Link href="/projects/tasks" className={subNavItemClass('/projects/tasks')}>
+)}
+              {pageVisible('/projects/tasks') && (
+<Link href="/projects/tasks" className={subNavItemClass('/projects/tasks')}>
                 <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -500,6 +533,7 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
+)}
             </div>
           )}
         </div>
@@ -533,7 +567,8 @@ export function Sidebar() {
 
           {(designerOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/designer/jobs" className={subNavItemClass('/designer/jobs')}>
+              {pageVisible('/designer/jobs') && (
+<Link href="/designer/jobs" className={subNavItemClass('/designer/jobs')}>
                 <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -546,10 +581,13 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/designer/bom" className={subNavItemClass('/designer/bom')}>
+)}
+              {pageVisible('/designer/bom') && (
+<Link href="/designer/bom" className={subNavItemClass('/designer/bom')}>
                 <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>BOM</span>}
               </Link>
+)}
             </div>
           )}
         </div>
@@ -583,11 +621,14 @@ export function Sidebar() {
 
           {(purchaseOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/purchase/dashboard" className={subNavItemClass('/purchase/dashboard')}>
+              {pageVisible('/purchase/dashboard') && (
+<Link href="/purchase/dashboard" className={subNavItemClass('/purchase/dashboard')}>
                 <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Purchase Dashboard</span>}
               </Link>
-              <Link href="/purchase/requisition" className={subNavItemClass('/purchase/requisition')}>
+)}
+              {pageVisible('/purchase/requisition') && (
+<Link href="/purchase/requisition" className={subNavItemClass('/purchase/requisition')}>
                 <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -600,7 +641,9 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/purchase/requests" className={subNavItemClass('/purchase/requests')}>
+)}
+              {pageVisible('/purchase/requests') && (
+<Link href="/purchase/requests" className={subNavItemClass('/purchase/requests')}>
                 <Send className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -613,7 +656,9 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/purchase/quotations" className={subNavItemClass('/purchase/quotations')}>
+)}
+              {pageVisible('/purchase/quotations') && (
+<Link href="/purchase/quotations" className={subNavItemClass('/purchase/quotations')}>
                 <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -626,7 +671,9 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/purchase/po" className={subNavItemClass('/purchase/po')}>
+)}
+              {pageVisible('/purchase/po') && (
+<Link href="/purchase/po" className={subNavItemClass('/purchase/po')}>
                 <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -639,14 +686,19 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/purchase/suppliers" className={subNavItemClass('/purchase/suppliers')}>
+)}
+              {pageVisible('/purchase/suppliers') && (
+<Link href="/purchase/suppliers" className={subNavItemClass('/purchase/suppliers')}>
                 <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Supplier Master</span>}
               </Link>
-              <Link href="/purchase/returns" className={subNavItemClass('/purchase/returns')}>
+)}
+              {pageVisible('/purchase/returns') && (
+<Link href="/purchase/returns" className={subNavItemClass('/purchase/returns')}>
                 <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Purchase Returns</span>}
               </Link>
+)}
 
             </div>
           )}
@@ -681,11 +733,14 @@ export function Sidebar() {
 
           {(storeOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/store/dashboard" className={subNavItemClass('/store/dashboard')}>
+              {pageVisible('/store/dashboard') && (
+<Link href="/store/dashboard" className={subNavItemClass('/store/dashboard')}>
                 <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Store Dashboard</span>}
               </Link>
-              <Link href="/store/items" className={subNavItemClass('/store/items')}>
+)}
+              {pageVisible('/store/items') && (
+<Link href="/store/items" className={subNavItemClass('/store/items')}>
                 <Package className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -698,15 +753,21 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/store/categories" className={subNavItemClass('/store/categories')}>
+)}
+              {pageVisible('/store/categories') && (
+<Link href="/store/categories" className={subNavItemClass('/store/categories')}>
                 <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Item Categories</span>}
               </Link>
-              <Link href="/store/uom" className={subNavItemClass('/store/uom')}>
+)}
+              {pageVisible('/store/uom') && (
+<Link href="/store/uom" className={subNavItemClass('/store/uom')}>
                 <Scale className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Units of Measurement</span>}
               </Link>
-              <Link href="/store/grn" className={subNavItemClass('/store/grn')}>
+)}
+              {pageVisible('/store/grn') && (
+<Link href="/store/grn" className={subNavItemClass('/store/grn')}>
                 <PackageCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -719,7 +780,9 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/store/bom-verification" className={subNavItemClass('/store/bom-verification')}>
+)}
+              {pageVisible('/store/bom-verification') && (
+<Link href="/store/bom-verification" className={subNavItemClass('/store/bom-verification')}>
                 <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -730,22 +793,31 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/store/material-issue" className={subNavItemClass('/store/material-issue')}>
+)}
+              {pageVisible('/store/material-issue') && (
+<Link href="/store/material-issue" className={subNavItemClass('/store/material-issue')}>
                 <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Material Issue</span>}
               </Link>
-              <Link href="/store/material-return" className={subNavItemClass('/store/material-return')}>
+)}
+              {pageVisible('/store/material-return') && (
+<Link href="/store/material-return" className={subNavItemClass('/store/material-return')}>
                 <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Material Return</span>}
               </Link>
-              <Link href="/store/scrap" className={subNavItemClass('/store/scrap')}>
+)}
+              {pageVisible('/store/scrap') && (
+<Link href="/store/scrap" className={subNavItemClass('/store/scrap')}>
                 <Trash2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Scrap & Rejection</span>}
               </Link>
-              <Link href="/store/reorder" className={subNavItemClass('/store/reorder')}>
+)}
+              {pageVisible('/store/reorder') && (
+<Link href="/store/reorder" className={subNavItemClass('/store/reorder')}>
                 <Boxes className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Low Stock / Reorder</span>}
               </Link>
+)}
 
             </div>
           )}
@@ -780,11 +852,14 @@ export function Sidebar() {
 
           {(productionOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/production/dashboard" className={subNavItemClass('/production/dashboard')}>
+              {pageVisible('/production/dashboard') && (
+<Link href="/production/dashboard" className={subNavItemClass('/production/dashboard')}>
                 <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Production Dashboard</span>}
               </Link>
-              <Link href="/production/planning" className={subNavItemClass('/production/planning')}>
+)}
+              {pageVisible('/production/planning') && (
+<Link href="/production/planning" className={subNavItemClass('/production/planning')}>
                 <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -792,7 +867,9 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/production/worker-daily-routine" className={subNavItemClass('/production/worker-daily-routine')}>
+)}
+              {pageVisible('/production/worker-daily-routine') && (
+<Link href="/production/worker-daily-routine" className={subNavItemClass('/production/worker-daily-routine')}>
                 <ClipboardList className="w-3.5 h-3.5 flex-shrink-0 text-purple-600 group-hover:text-purple-800 transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -803,26 +880,37 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/production/mrp" className={subNavItemClass('/production/mrp')}>
+)}
+              {pageVisible('/production/mrp') && (
+<Link href="/production/mrp" className={subNavItemClass('/production/mrp')}>
                 <Cpu className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Material Planning & Issue (MRP)</span>}
               </Link>
-              <Link href="/production/completion" className={subNavItemClass('/production/completion')}>
+)}
+              {pageVisible('/production/completion') && (
+<Link href="/production/completion" className={subNavItemClass('/production/completion')}>
                 <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Completion & QC Clearance</span>}
               </Link>
-              <Link href="/production/packaging" className={subNavItemClass('/production/packaging')}>
+)}
+              {pageVisible('/production/packaging') && (
+<Link href="/production/packaging" className={subNavItemClass('/production/packaging')}>
                 <Package className="w-3.5 h-3.5 flex-shrink-0 text-crm-brand-600 group-hover:text-crm-brand-600 transition-colors" />
                 {!sidebarCollapsed && <span>Dispatch & Packaging</span>}
               </Link>
-              <Link href="/production/dispatch" className={subNavItemClass('/production/dispatch')}>
+)}
+              {pageVisible('/production/dispatch') && (
+<Link href="/production/dispatch" className={subNavItemClass('/production/dispatch')}>
                 <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Delivery Challan</span>}
               </Link>
-              <Link href="/accounting/e-waybill" className={subNavItemClass('/accounting/e-waybill')}>
+)}
+              {pageVisible('/accounting/e-waybill') && (
+<Link href="/accounting/e-waybill" className={subNavItemClass('/accounting/e-waybill')}>
                 <Truck className="w-3.5 h-3.5 flex-shrink-0 text-sky-600 group-hover:text-sky-800 transition-colors" />
                 {!sidebarCollapsed && <span>GST E-Way Bill (Logistics)</span>}
               </Link>
+)}
 
             </div>
           )}
@@ -857,31 +945,44 @@ export function Sidebar() {
 
           {(accountingOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/accounting/dashboard" className={subNavItemClass('/accounting/dashboard')}>
+              {pageVisible('/accounting/dashboard') && (
+<Link href="/accounting/dashboard" className={subNavItemClass('/accounting/dashboard')}>
                 <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Accounting Dashboard</span>}
               </Link>
-              <Link href="/accounting/chart-of-accounts" className={subNavItemClass('/accounting/chart-of-accounts')}>
+)}
+              {pageVisible('/accounting/chart-of-accounts') && (
+<Link href="/accounting/chart-of-accounts" className={subNavItemClass('/accounting/chart-of-accounts')}>
                 <GitBranch className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Chart of Accounts</span>}
               </Link>
-              <Link href="/accounting/account-groups" className={subNavItemClass('/accounting/account-groups')}>
+)}
+              {pageVisible('/accounting/account-groups') && (
+<Link href="/accounting/account-groups" className={subNavItemClass('/accounting/account-groups')}>
                 <Folder className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Account Groups</span>}
               </Link>
-              <Link href="/accounting/customers" className={subNavItemClass('/accounting/customers')}>
+)}
+              {pageVisible('/accounting/customers') && (
+<Link href="/accounting/customers" className={subNavItemClass('/accounting/customers')}>
                 <Users className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Customer Ledgers</span>}
               </Link>
-              <Link href="/accounting/suppliers" className={subNavItemClass('/accounting/suppliers')}>
+)}
+              {pageVisible('/accounting/suppliers') && (
+<Link href="/accounting/suppliers" className={subNavItemClass('/accounting/suppliers')}>
                 <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Supplier Ledgers</span>}
               </Link>
-              <Link href="/accounting/sales-invoices" className={subNavItemClass('/accounting/sales-invoices')}>
+)}
+              {pageVisible('/accounting/sales-invoices') && (
+<Link href="/accounting/sales-invoices" className={subNavItemClass('/accounting/sales-invoices')}>
                 <Receipt className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Sales Invoices</span>}
               </Link>
-              <Link href="/accounting/e-waybill" className={subNavItemClass('/accounting/e-waybill')}>
+)}
+              {pageVisible('/accounting/e-waybill') && (
+<Link href="/accounting/e-waybill" className={subNavItemClass('/accounting/e-waybill')}>
                 <Truck className="w-3.5 h-3.5 flex-shrink-0 text-sky-600 group-hover:text-sky-800 transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
@@ -892,91 +993,134 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/accounting/purchase-invoices" className={subNavItemClass('/accounting/purchase-invoices')}>
+)}
+              {pageVisible('/accounting/purchase-invoices') && (
+<Link href="/accounting/purchase-invoices" className={subNavItemClass('/accounting/purchase-invoices')}>
                 <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Purchase Invoices</span>}
               </Link>
-              <Link href="/accounting/credit-notes" className={subNavItemClass('/accounting/credit-notes')}>
+)}
+              {pageVisible('/accounting/credit-notes') && (
+<Link href="/accounting/credit-notes" className={subNavItemClass('/accounting/credit-notes')}>
                 <CreditCard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Credit Notes</span>}
               </Link>
-              <Link href="/accounting/debit-notes" className={subNavItemClass('/accounting/debit-notes')}>
+)}
+              {pageVisible('/accounting/debit-notes') && (
+<Link href="/accounting/debit-notes" className={subNavItemClass('/accounting/debit-notes')}>
                 <CreditCard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Debit Notes</span>}
               </Link>
-              <Link href="/accounting/receipts" className={subNavItemClass('/accounting/receipts')}>
+)}
+              {pageVisible('/accounting/receipts') && (
+<Link href="/accounting/receipts" className={subNavItemClass('/accounting/receipts')}>
                 <Coins className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Customer Receipts</span>}
               </Link>
-              <Link href="/accounting/payments" className={subNavItemClass('/accounting/payments')}>
+)}
+              {pageVisible('/accounting/payments') && (
+<Link href="/accounting/payments" className={subNavItemClass('/accounting/payments')}>
                 <Banknote className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Supplier Payments</span>}
               </Link>
-              <Link href="/accounting/journal-entries" className={subNavItemClass('/accounting/journal-entries')}>
+)}
+              {pageVisible('/accounting/journal-entries') && (
+<Link href="/accounting/journal-entries" className={subNavItemClass('/accounting/journal-entries')}>
                 <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Journal Entries (JV)</span>}
               </Link>
-              <Link href="/accounting/contra-entries" className={subNavItemClass('/accounting/contra-entries')}>
+)}
+              {pageVisible('/accounting/contra-entries') && (
+<Link href="/accounting/contra-entries" className={subNavItemClass('/accounting/contra-entries')}>
                 <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Contra Entries</span>}
               </Link>
-              <Link href="/accounting/expenses" className={subNavItemClass('/accounting/expenses')}>
+)}
+              {pageVisible('/accounting/expenses') && (
+<Link href="/accounting/expenses" className={subNavItemClass('/accounting/expenses')}>
                 <Wallet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Expense Management</span>}
               </Link>
-              <Link href="/accounting/cash-bank" className={subNavItemClass('/accounting/cash-bank')}>
+)}
+              {pageVisible('/accounting/cash-bank') && (
+<Link href="/accounting/cash-bank" className={subNavItemClass('/accounting/cash-bank')}>
                 <Landmark className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Cash & Bank Accounts</span>}
               </Link>
-              <Link href="/accounting/bank-reconciliation" className={subNavItemClass('/accounting/bank-reconciliation')}>
+)}
+              {pageVisible('/accounting/bank-reconciliation') && (
+<Link href="/accounting/bank-reconciliation" className={subNavItemClass('/accounting/bank-reconciliation')}>
                 <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Bank Reconciliation</span>}
               </Link>
-              <Link href="/accounting/gst" className={subNavItemClass('/accounting/gst')}>
+)}
+              {pageVisible('/accounting/gst') && (
+<Link href="/accounting/gst" className={subNavItemClass('/accounting/gst')}>
                 <Scale className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>GST Management</span>}
               </Link>
-              <Link href="/accounting/tds" className={subNavItemClass('/accounting/tds')}>
+)}
+              {pageVisible('/accounting/tds') && (
+<Link href="/accounting/tds" className={subNavItemClass('/accounting/tds')}>
                 <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>TDS Compliance</span>}
               </Link>
-              <Link href="/accounting/accounts-receivable" className={subNavItemClass('/accounting/accounts-receivable')}>
+)}
+              {pageVisible('/accounting/accounts-receivable') && (
+<Link href="/accounting/accounts-receivable" className={subNavItemClass('/accounting/accounts-receivable')}>
                 <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Accounts Receivable (AR)</span>}
               </Link>
-              <Link href="/accounting/accounts-payable" className={subNavItemClass('/accounting/accounts-payable')}>
+)}
+              {pageVisible('/accounting/accounts-payable') && (
+<Link href="/accounting/accounts-payable" className={subNavItemClass('/accounting/accounts-payable')}>
                 <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Accounts Payable (AP)</span>}
               </Link>
-              <Link href="/accounting/outstanding" className={subNavItemClass('/accounting/outstanding')}>
+)}
+              {pageVisible('/accounting/outstanding') && (
+<Link href="/accounting/outstanding" className={subNavItemClass('/accounting/outstanding')}>
                 <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Outstanding & Reminders</span>}
               </Link>
-              <Link href="/accounting/job-costing" className={subNavItemClass('/accounting/job-costing')}>
+)}
+              {pageVisible('/accounting/job-costing') && (
+<Link href="/accounting/job-costing" className={subNavItemClass('/accounting/job-costing')}>
                 <DollarSign className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Job-wise Costing</span>}
               </Link>
-              <Link href="/accounting/project-costing" className={subNavItemClass('/accounting/project-costing')}>
+)}
+              {pageVisible('/accounting/project-costing') && (
+<Link href="/accounting/project-costing" className={subNavItemClass('/accounting/project-costing')}>
                 <Briefcase className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Project Financial Costing</span>}
               </Link>
-              <Link href="/accounting/inventory-valuation" className={subNavItemClass('/accounting/inventory-valuation')}>
+)}
+              {pageVisible('/accounting/inventory-valuation') && (
+<Link href="/accounting/inventory-valuation" className={subNavItemClass('/accounting/inventory-valuation')}>
                 <Box className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Inventory Financial Valuation</span>}
               </Link>
-              <Link href="/accounting/fixed-assets" className={subNavItemClass('/accounting/fixed-assets')}>
+)}
+              {pageVisible('/accounting/fixed-assets') && (
+<Link href="/accounting/fixed-assets" className={subNavItemClass('/accounting/fixed-assets')}>
                 <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Fixed Assets Master</span>}
               </Link>
-              <Link href="/accounting/depreciation" className={subNavItemClass('/accounting/depreciation')}>
+)}
+              {pageVisible('/accounting/depreciation') && (
+<Link href="/accounting/depreciation" className={subNavItemClass('/accounting/depreciation')}>
                 <History className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Depreciation Schedule</span>}
               </Link>
+)}
 
-              <Link href="/accounting/settings" className={subNavItemClass('/accounting/settings')}>
+              {pageVisible('/accounting/settings') && (
+<Link href="/accounting/settings" className={subNavItemClass('/accounting/settings')}>
                 <Settings className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Accounting Settings</span>}
               </Link>
+)}
             </div>
           )}
         </div>
@@ -1010,22 +1154,30 @@ export function Sidebar() {
 
           {(maintenanceOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/maintenance/dashboard" className={subNavItemClass('/maintenance/dashboard')}>
+              {pageVisible('/maintenance/dashboard') && (
+<Link href="/maintenance/dashboard" className={subNavItemClass('/maintenance/dashboard')}>
                 <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Maintenance Dashboard</span>}
               </Link>
-              <Link href="/maintenance/assets" className={subNavItemClass('/maintenance/assets')}>
+)}
+              {pageVisible('/maintenance/assets') && (
+<Link href="/maintenance/assets" className={subNavItemClass('/maintenance/assets')}>
                 <Cpu className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Asset / Machine Master</span>}
               </Link>
-              <Link href="/maintenance/service-requests" className={subNavItemClass('/maintenance/service-requests')}>
+)}
+              {pageVisible('/maintenance/service-requests') && (
+<Link href="/maintenance/service-requests" className={subNavItemClass('/maintenance/service-requests')}>
                 <PhoneCall className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Service Requests</span>}
               </Link>
-              <Link href="/maintenance/breakdowns" className={subNavItemClass('/maintenance/breakdowns')}>
+)}
+              {pageVisible('/maintenance/breakdowns') && (
+<Link href="/maintenance/breakdowns" className={subNavItemClass('/maintenance/breakdowns')}>
                 <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Breakdown Management</span>}
               </Link>
+)}
             </div>
           )}
         </div>
@@ -1061,128 +1213,186 @@ export function Sidebar() {
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               {/* HR */}
               {!sidebarCollapsed && <div className="px-3 pt-1 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">HR</div>}
-              <Link href="/hr/dashboard" className={subNavItemClass('/hr/dashboard')}>
+              {pageVisible('/hr/dashboard') && (
+<Link href="/hr/dashboard" className={subNavItemClass('/hr/dashboard')}>
                 <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>1. HR Dashboard</span>}
               </Link>
-              <Link href="/hr/employees" className={subNavItemClass('/hr/employees')}>
+)}
+              {pageVisible('/hr/employees') && (
+<Link href="/hr/employees" className={subNavItemClass('/hr/employees')}>
                 <UserCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>2. Employee Master</span>}
               </Link>
-              <Link href="/hr/departments" className={subNavItemClass('/hr/departments')}>
+)}
+              {pageVisible('/hr/departments') && (
+<Link href="/hr/departments" className={subNavItemClass('/hr/departments')}>
                 <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>3. Departments</span>}
               </Link>
-              <Link href="/hr/designations" className={subNavItemClass('/hr/designations')}>
+)}
+              {pageVisible('/hr/designations') && (
+<Link href="/hr/designations" className={subNavItemClass('/hr/designations')}>
                 <Briefcase className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>4. Designations</span>}
               </Link>
-              <Link href="/hr/documents" className={subNavItemClass('/hr/documents')}>
+)}
+              {pageVisible('/hr/documents') && (
+<Link href="/hr/documents" className={subNavItemClass('/hr/documents')}>
                 <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>5. Employee Documents</span>}
               </Link>
-              <Link href="/hr/onboarding" className={subNavItemClass('/hr/onboarding')}>
+)}
+              {pageVisible('/hr/onboarding') && (
+<Link href="/hr/onboarding" className={subNavItemClass('/hr/onboarding')}>
                 <UserPlus className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>6. Employee Onboarding</span>}
               </Link>
-              <Link href="/hr/transfers" className={subNavItemClass('/hr/transfers')}>
+)}
+              {pageVisible('/hr/transfers') && (
+<Link href="/hr/transfers" className={subNavItemClass('/hr/transfers')}>
                 <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>7. Employee Transfers</span>}
               </Link>
-              <Link href="/hr/promotions" className={subNavItemClass('/hr/promotions')}>
+)}
+              {pageVisible('/hr/promotions') && (
+<Link href="/hr/promotions" className={subNavItemClass('/hr/promotions')}>
                 <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>8. Promotion & Increment</span>}
               </Link>
-              <Link href="/hr/exits" className={subNavItemClass('/hr/exits')}>
+)}
+              {pageVisible('/hr/exits') && (
+<Link href="/hr/exits" className={subNavItemClass('/hr/exits')}>
                 <History className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>9. Resignation / Exit</span>}
               </Link>
-              <Link href="/hr/settlement" className={subNavItemClass('/hr/settlement')}>
+)}
+              {pageVisible('/hr/settlement') && (
+<Link href="/hr/settlement" className={subNavItemClass('/hr/settlement')}>
                 <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>10. Full & Final Settlement</span>}
               </Link>
+)}
 
               {/* Attendance */}
               {!sidebarCollapsed && <div className="px-3 pt-2 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Attendance</div>}
-              <Link href="/hr/attendance" className={subNavItemClass('/hr/attendance')}>
+              {pageVisible('/hr/attendance') && (
+<Link href="/hr/attendance" className={subNavItemClass('/hr/attendance')}>
                 <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>11. Attendance</span>}
               </Link>
-              <Link href="/hr/shifts" className={subNavItemClass('/hr/shifts')}>
+)}
+              {pageVisible('/hr/shifts') && (
+<Link href="/hr/shifts" className={subNavItemClass('/hr/shifts')}>
                 <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>12. Shift Management</span>}
               </Link>
-              <Link href="/hr/roster" className={subNavItemClass('/hr/roster')}>
+)}
+              {pageVisible('/hr/roster') && (
+<Link href="/hr/roster" className={subNavItemClass('/hr/roster')}>
                 <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>13. Shift Roster</span>}
               </Link>
-              <Link href="/hr/holidays" className={subNavItemClass('/hr/holidays')}>
+)}
+              {pageVisible('/hr/holidays') && (
+<Link href="/hr/holidays" className={subNavItemClass('/hr/holidays')}>
                 <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>14. Holiday Calendar</span>}
               </Link>
-              <Link href="/hr/leaves" className={subNavItemClass('/hr/leaves')}>
+)}
+              {pageVisible('/hr/leaves') && (
+<Link href="/hr/leaves" className={subNavItemClass('/hr/leaves')}>
                 <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>15. Leave Management</span>}
               </Link>
-              <Link href="/hr/leave-approvals" className={subNavItemClass('/hr/leave-approvals')}>
+)}
+              {pageVisible('/hr/leave-approvals') && (
+<Link href="/hr/leave-approvals" className={subNavItemClass('/hr/leave-approvals')}>
                 <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>16. Leave Approvals</span>}
               </Link>
-              <Link href="/hr/wfh" className={subNavItemClass('/hr/wfh')}>
+)}
+              {pageVisible('/hr/wfh') && (
+<Link href="/hr/wfh" className={subNavItemClass('/hr/wfh')}>
                 <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>17. WFH / Remote Work</span>}
               </Link>
-              <Link href="/hr/missed-punch" className={subNavItemClass('/hr/missed-punch')}>
+)}
+              {pageVisible('/hr/missed-punch') && (
+<Link href="/hr/missed-punch" className={subNavItemClass('/hr/missed-punch')}>
                 <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>18. Missed Punch</span>}
               </Link>
-              <Link href="/hr/regularization" className={subNavItemClass('/hr/regularization')}>
+)}
+              {pageVisible('/hr/regularization') && (
+<Link href="/hr/regularization" className={subNavItemClass('/hr/regularization')}>
                 <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>19. Attendance Regularization</span>}
               </Link>
-              <Link href="/hr/overtime" className={subNavItemClass('/hr/overtime')}>
+)}
+              {pageVisible('/hr/overtime') && (
+<Link href="/hr/overtime" className={subNavItemClass('/hr/overtime')}>
                 <Zap className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>20. Overtime</span>}
               </Link>
-              <Link href="/hr/early-checkout" className={subNavItemClass('/hr/early-checkout')}>
+)}
+              {pageVisible('/hr/early-checkout') && (
+<Link href="/hr/early-checkout" className={subNavItemClass('/hr/early-checkout')}>
                 <History className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>21. Early Checkout</span>}
               </Link>
+)}
 
               {/* Payroll */}
               {!sidebarCollapsed && <div className="px-3 pt-2 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Payroll</div>}
-              <Link href="/hr/payroll-dashboard" className={subNavItemClass('/hr/payroll-dashboard')}>
+              {pageVisible('/hr/payroll-dashboard') && (
+<Link href="/hr/payroll-dashboard" className={subNavItemClass('/hr/payroll-dashboard')}>
                 <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>22. Payroll Dashboard</span>}
               </Link>
-              <Link href="/hr/salary-structures" className={subNavItemClass('/hr/salary-structures')}>
+)}
+              {pageVisible('/hr/salary-structures') && (
+<Link href="/hr/salary-structures" className={subNavItemClass('/hr/salary-structures')}>
                 <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>23. Salary Structure</span>}
               </Link>
-              <Link href="/hr/salary-components" className={subNavItemClass('/hr/salary-components')}>
+)}
+              {pageVisible('/hr/salary-components') && (
+<Link href="/hr/salary-components" className={subNavItemClass('/hr/salary-components')}>
                 <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>24. Salary Components</span>}
               </Link>
-              <Link href="/hr/monthly-payroll" className={subNavItemClass('/hr/monthly-payroll')}>
+)}
+              {pageVisible('/hr/monthly-payroll') && (
+<Link href="/hr/monthly-payroll" className={subNavItemClass('/hr/monthly-payroll')}>
                 <Banknote className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>25. Monthly Payroll</span>}
               </Link>
-              <Link href="/hr/payroll-approvals" className={subNavItemClass('/hr/payroll-approvals')}>
+)}
+              {pageVisible('/hr/payroll-approvals') && (
+<Link href="/hr/payroll-approvals" className={subNavItemClass('/hr/payroll-approvals')}>
                 <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>26. Payroll Approval</span>}
               </Link>
-              <Link href="/hr/advances" className={subNavItemClass('/hr/advances')}>
+)}
+              {pageVisible('/hr/advances') && (
+<Link href="/hr/advances" className={subNavItemClass('/hr/advances')}>
                 <Wallet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>27. Employee Advances / Loans</span>}
               </Link>
-              <Link href="/hr/reimbursements" className={subNavItemClass('/hr/reimbursements')}>
+)}
+              {pageVisible('/hr/reimbursements') && (
+<Link href="/hr/reimbursements" className={subNavItemClass('/hr/reimbursements')}>
                 <Receipt className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>28. Reimbursements / Expenses</span>}
               </Link>
-              <Link href="/hr/payslips" className={subNavItemClass('/hr/payslips')}>
+)}
+              {pageVisible('/hr/payslips') && (
+<Link href="/hr/payslips" className={subNavItemClass('/hr/payslips')}>
                 <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>29. Payslips</span>}
               </Link>
+)}
 
 
             </div>
@@ -1218,42 +1428,60 @@ export function Sidebar() {
 
           {(integrationOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/integration/job-360" className={subNavItemClass('/integration/job-360')}>
+              {pageVisible('/integration/job-360') && (
+<Link href="/integration/job-360" className={subNavItemClass('/integration/job-360')}>
                 <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>1. Job 360° Overview</span>}
               </Link>
-              <Link href="/integration/management-dashboard" className={subNavItemClass('/integration/management-dashboard')}>
+)}
+              {pageVisible('/integration/management-dashboard') && (
+<Link href="/integration/management-dashboard" className={subNavItemClass('/integration/management-dashboard')}>
                 <BarChart3 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>2. Executive Dashboard</span>}
               </Link>
-              <Link href="/integration/alert-center" className={subNavItemClass('/integration/alert-center')}>
+)}
+              {pageVisible('/integration/alert-center') && (
+<Link href="/integration/alert-center" className={subNavItemClass('/integration/alert-center')}>
                 <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>3. Action & Alert Center</span>}
               </Link>
-              <Link href="/integration/approval-center" className={subNavItemClass('/integration/approval-center')}>
+)}
+              {pageVisible('/integration/approval-center') && (
+<Link href="/integration/approval-center" className={subNavItemClass('/integration/approval-center')}>
                 <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>4. Approval Center</span>}
               </Link>
-              <Link href="/integration/customer-360" className={subNavItemClass('/integration/customer-360')}>
+)}
+              {pageVisible('/integration/customer-360') && (
+<Link href="/integration/customer-360" className={subNavItemClass('/integration/customer-360')}>
                 <UserCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>5. Customer 360°</span>}
               </Link>
-              <Link href="/integration/supplier-360" className={subNavItemClass('/integration/supplier-360')}>
+)}
+              {pageVisible('/integration/supplier-360') && (
+<Link href="/integration/supplier-360" className={subNavItemClass('/integration/supplier-360')}>
                 <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>6. Supplier 360°</span>}
               </Link>
-              <Link href="/integration/item-360" className={subNavItemClass('/integration/item-360')}>
+)}
+              {pageVisible('/integration/item-360') && (
+<Link href="/integration/item-360" className={subNavItemClass('/integration/item-360')}>
                 <Box className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>7. Item / Material 360°</span>}
               </Link>
-              <Link href="/integration/employee-360" className={subNavItemClass('/integration/employee-360')}>
+)}
+              {pageVisible('/integration/employee-360') && (
+<Link href="/integration/employee-360" className={subNavItemClass('/integration/employee-360')}>
                 <Users className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>8. Employee 360°</span>}
               </Link>
-              <Link href="/integration/activity-log" className={subNavItemClass('/integration/activity-log')}>
+)}
+              {pageVisible('/integration/activity-log') && (
+<Link href="/integration/activity-log" className={subNavItemClass('/integration/activity-log')}>
                 <ActivityIcon className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>9. Global Activity Trail</span>}
               </Link>
+)}
 
             </div>
           )}
@@ -1288,34 +1516,48 @@ export function Sidebar() {
 
           {(testingOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/testing/uat-hub" className={subNavItemClass('/testing/uat-hub')}>
+              {pageVisible('/testing/uat-hub') && (
+<Link href="/testing/uat-hub" className={subNavItemClass('/testing/uat-hub')}>
                 <FileCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>1. ERP UAT & Test Matrix</span>}
               </Link>
-              <Link href="/testing/role-matrix" className={subNavItemClass('/testing/role-matrix')}>
+)}
+              {pageVisible('/testing/role-matrix') && (
+<Link href="/testing/role-matrix" className={subNavItemClass('/testing/role-matrix')}>
                 <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>2. Role & Scope Tester</span>}
               </Link>
-              <Link href="/testing/bug-tracker" className={subNavItemClass('/testing/bug-tracker')}>
+)}
+              {pageVisible('/testing/bug-tracker') && (
+<Link href="/testing/bug-tracker" className={subNavItemClass('/testing/bug-tracker')}>
                 <Bug className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>3. Internal Bug Tracker</span>}
               </Link>
-              <Link href="/settings/backup-restore" className={subNavItemClass('/settings/backup-restore')}>
+)}
+              {pageVisible('/settings/backup-restore') && (
+<Link href="/settings/backup-restore" className={subNavItemClass('/settings/backup-restore')}>
                 <Database className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>4. Backup & Recovery</span>}
               </Link>
-              <Link href="/settings/data-import" className={subNavItemClass('/settings/data-import')}>
+)}
+              {pageVisible('/settings/data-import') && (
+<Link href="/settings/data-import" className={subNavItemClass('/settings/data-import')}>
                 <UploadCloud className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>5. Data Import Wizard</span>}
               </Link>
-              <Link href="/settings/security-hub" className={subNavItemClass('/settings/security-hub')}>
+)}
+              {pageVisible('/settings/security-hub') && (
+<Link href="/settings/security-hub" className={subNavItemClass('/settings/security-hub')}>
                 <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>6. Security & Audit Hub</span>}
               </Link>
-              <Link href="/settings/release-notes" className={subNavItemClass('/settings/release-notes')}>
+)}
+              {pageVisible('/settings/release-notes') && (
+<Link href="/settings/release-notes" className={subNavItemClass('/settings/release-notes')}>
                 <BookOpen className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>7. Go-Live & Release Notes</span>}
               </Link>
+)}
             </div>
           )}
         </div>
@@ -1349,34 +1591,36 @@ export function Sidebar() {
 
           {(settingsOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/users" className={subNavItemClass('/users')}>
+              {pageVisible('/users') && (
+<Link href="/users" className={subNavItemClass('/users')}>
                 <UserCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Users & Employees</span>}
               </Link>
-              <Link href="/departments" className={subNavItemClass('/departments')}>
+)}
+              {pageVisible('/departments') && (
+<Link href="/departments" className={subNavItemClass('/departments')}>
                 <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Departments (9 Core)</span>}
               </Link>
-              <Link href="/roles" className={subNavItemClass('/roles')}>
-                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
-                {!sidebarCollapsed && <span>Role Management</span>}
-              </Link>
-              <Link href="/permissions" className={subNavItemClass('/permissions')}>
-                <Lock className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
-                {!sidebarCollapsed && <span>Permission Matrix</span>}
-              </Link>
-              <Link href="/settings/company" className={subNavItemClass('/settings/company')}>
+)}
+              {pageVisible('/settings/company') && (
+<Link href="/settings/company" className={subNavItemClass('/settings/company')}>
                 <Settings className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Company Profile</span>}
               </Link>
-              <Link href="/settings/numbering" className={subNavItemClass('/settings/numbering')}>
+)}
+              {pageVisible('/settings/numbering') && (
+<Link href="/settings/numbering" className={subNavItemClass('/settings/numbering')}>
                 <Hash className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Numbering Series</span>}
               </Link>
-              <Link href="/settings/audit-logs" className={subNavItemClass('/settings/audit-logs')}>
+)}
+              {pageVisible('/settings/audit-logs') && (
+<Link href="/settings/audit-logs" className={subNavItemClass('/settings/audit-logs')}>
                 <History className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Audit Trail Logs</span>}
               </Link>
+)}
               <Link href="/notifications" className={subNavItemClass('/notifications')}>
                 <Bell className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Notifications</span>}
