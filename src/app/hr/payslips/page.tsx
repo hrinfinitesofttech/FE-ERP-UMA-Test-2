@@ -1,154 +1,153 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight, Download, FileArchive, Printer, Search } from 'lucide-react';
 import { useERP } from '../../../context/ERPContext';
 import { printContent } from '../../../lib/printUtils';
-import { FileText, Printer, Download, Building, DollarSign, UserCheck, ShieldCheck } from 'lucide-react';
+import { toast } from '../../../context/ToastContext';
+import { payrollApi, asList, money, errorText, downloadFile, currentPeriod, shiftPeriod, periodLabel } from '../../../lib/payrollApi';
+import { card, inputCls, btn, btnPrimary, Loading, ErrorBanner } from '../attendance/_parts/shared';
+
+const n = (v: any) => Number(v) || 0;
 
 export default function PayslipsPage() {
-  const { payrollRecords, company } = useERP();
-  const [selectedRecord, setSelectedRecord] = useState(payrollRecords[0]);
+  const { company, currentUser } = useERP() as any;
+  const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN' || currentUser?.roleName === 'Super Admin' || currentUser?.roleName === 'Admin';
+  const [period, setPeriod] = useState(currentPeriod());
+  const [rows, setRows] = useState<any[]>([]);
+  const [sel, setSel] = useState<string>('');
+  const [q, setQ] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState('');
+
+  const load = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const list = asList(await payrollApi.list(period)).filter((r) => r.status !== 'Draft');
+      setRows(list);
+      setSel((cur) => (list.some((r) => r.id === cur) ? cur : list[0]?.id || ''));
+    } catch (e) { setError(errorText(e, 'Could not load payslips')); } finally { setLoading(false); }
+  }, [period]);
+  useEffect(() => { load(); }, [load]);
+
+  const shown = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    return rows.filter((r) => !t || [r.employeeName, r.employeeId, r.department].some((x: string) => (x || '').toLowerCase().includes(t)));
+  }, [rows, q]);
+  const rec = rows.find((r) => r.id === sel);
+
+  const dl = async (key: string, path: string, name: string) => {
+    setBusy(key);
+    try { await downloadFile(path, name); } catch (e) { toast.error(errorText(e)); } finally { setBusy(''); }
+  };
+
+  const earn: [string, any][] = rec ? [
+    ['Basic Salary', rec.basicSalary], ['House Rent Allowance (HRA)', rec.hra],
+    ...(n(rec.conveyanceAllowance) || n(rec.medicalAllowance) || n(rec.specialAllowance)
+      ? ([['Conveyance Allowance', rec.conveyanceAllowance], ['Medical Allowance', rec.medicalAllowance], ['Special Allowance', rec.specialAllowance]] as [string, any][])
+      : ([['Special & Other Allowances', rec.allowances]] as [string, any][])),
+    ['Overtime', rec.overtimeAmount], ['Other Earnings', rec.otherEarnings], ['Reimbursements', rec.reimbursementAmount],
+  ].filter(([l, v], i) => i === 0 || n(v) !== 0) as [string, any][] : [];
+  const ded: [string, any][] = rec ? ([['Provident Fund (Employee)', rec.pfDeduction], ['ESI (Employee)', rec.esiDeduction], ['Professional Tax', rec.ptDeduction], ['Income Tax (TDS)', rec.tdsDeduction],
+    ['Loan / Advance Recovery', rec.loanAdvanceRecovery], ['Other Deductions', rec.otherDeductions]] as [string, any][]).filter(([, v]) => n(v) !== 0) : [];
+  const totalEarn = rec ? n(rec.grossEarnings) + n(rec.reimbursementAmount) : 0;
+  const addr = [company?.address, company?.city, company?.state, company?.pincode].filter(Boolean).join(', ');
 
   return (
-    <div className="p-6 space-y-6 bg-white text-[color:var(--crm-text-primary)] ">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-4 print:hidden">
+    <div className="p-4 md:p-6 space-y-4 text-[color:var(--crm-text-primary)]">
+      <div className={`${card} p-5 flex flex-wrap items-center justify-between gap-3 print:hidden`}>
         <div>
-          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
-            <FileText className="w-7 h-7 text-crm-brand-500" />
-            Official PDF Payslip Generator & Self-Service
-          </h1>
-          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
-            Printable Employee Salary Slip with Statutory PF/ESI/PT Breakdown & Company Letterhead
-          </p>
+          <h1 className="text-xl font-extrabold">Payslips</h1>
+          <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">{isAdmin ? 'Approved and paid salary slips — download as PDF individually or all together.' : 'Your salary slips — available once HR approves the month.'}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => printContent('printable-salary-payslip', { title: selectedRecord ? `Payslip_${selectedRecord.employeeName.replace(/\s+/g, '_')}_${selectedRecord.monthYear}` : 'Salary_Payslip' })}
-            className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[color:var(--crm-text-primary)] font-semibold text-sm rounded-lg shadow-md transition"
-          >
-            <Printer className="w-4 h-4" /> Print / Save PDF Payslip
-          </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button className={btn} onClick={() => setPeriod(shiftPeriod(period, -1))} aria-label="Previous month"><ChevronLeft className="w-3.5 h-3.5" /></button>
+          <input type="month" value={period} onChange={(e) => e.target.value && setPeriod(e.target.value)} className={inputCls} aria-label="Month" />
+          <button className={btn} onClick={() => setPeriod(shiftPeriod(period, 1))} aria-label="Next month"><ChevronRight className="w-3.5 h-3.5" /></button>
+          {isAdmin && <button className={btn} disabled={!rows.length || !!busy} onClick={() => dl('zip', `/payroll-records/payslips-zip/?period=${period}`, `payslips-${period}.zip`)}><FileArchive className="w-3.5 h-3.5" /> {busy === 'zip' ? 'Preparing…' : `All PDFs (ZIP)`}</button>}
         </div>
       </div>
 
-      {/* Select Record Bar */}
-      <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl p-4 flex items-center gap-4 print:hidden">
-        <label className="text-xs font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Select Employee Payslip:</label>
-        <select
-          value={selectedRecord?.id}
-          onChange={(e) => {
-            const found = payrollRecords.find((p) => p.id === e.target.value);
-            if (found) setSelectedRecord(found);
-          }}
-          className="bg-white border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-sm text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600"
-        >
-          {payrollRecords.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.employeeName} — {p.monthYear} ({p.payrollNumber})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Printable Payslip Card Container */}
-      {selectedRecord && (
-        <div id="printable-salary-payslip" className="bg-white text-slate-900 rounded-2xl p-8 max-w-4xl mx-auto shadow-2xl space-y-6 print:p-0 print:shadow-none">
-          {/* Company Letterhead */}
-          <div className="flex justify-between items-start border-b-2 border-[color:var(--crm-border-default)] pb-4">
-            <div className="flex items-start gap-3.5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-12 h-12 object-contain shrink-0 mt-0.5" />
-              <div>
-                <h2 className="text-2xl font-black text-[#1F3FB0] tracking-tight">{company.companyName || 'UMA TECHNO FAB PVT. LTD.'}</h2>
-                <p className="text-xs text-slate-600 font-medium">GIDC Vatva Industrial Estate, Phase 3, Ahmedabad, Gujarat - 382445</p>
-                <p className="text-xs text-slate-600 font-medium">GSTIN: 24AAACU1234F1Z9 | Corporate CIN: U28910GJ2020PTC112233</p>
+      {loading ? <Loading /> : error ? <ErrorBanner msg={error} retry={load} /> : rows.length === 0 ? (
+        <div className={`${card} p-12 text-center text-xs text-slate-500`}>
+          <p className="font-bold text-slate-700">No payslips for {periodLabel(period)}</p>
+          <p className="mt-1">{isAdmin ? 'Payslips appear here after the month’s payroll is approved (HR → Monthly Payroll).' : 'Your payslip will appear here once HR approves this month’s salary.'}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-4 items-start">
+          {(isAdmin || rows.length > 1) && (
+            <aside className={`${card} print:hidden`}>
+              <div className="p-3 border-b border-[color:var(--crm-border-default)] relative">
+                <Search className="w-3.5 h-3.5 absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Search ${rows.length} employees`} className={`${inputCls} w-full pl-8`} aria-label="Search payslips" />
               </div>
-            </div>
-            <div className="text-right">
-              <span className="text-xs font-bold uppercase tracking-wider text-crm-brand-800 bg-crm-brand- px-3 py-1 rounded-full">
-                SALARY SLIP
-              </span>
-              <div className="text-xs font-mono text-slate-600 mt-2">Month: <strong className="text-slate-900">{selectedRecord.monthYear}</strong></div>
-              <div className="text-xs font-mono text-slate-600">Voucher Ref: {selectedRecord.payrollNumber}</div>
-            </div>
-          </div>
+              <ul className="max-h-[70vh] overflow-y-auto p-2 space-y-1">
+                {shown.map((r) => (
+                  <li key={r.id}>
+                    <button onClick={() => setSel(r.id)} className={`w-full text-left p-2.5 rounded-xl border cursor-pointer ${r.id === sel ? 'border-blue-500 bg-blue-50/60' : 'border-transparent hover:bg-slate-50'}`}>
+                      <div className="text-xs font-bold truncate">{r.employeeName}</div>
+                      <div className="flex justify-between text-[11px] text-slate-500"><span>{r.employeeId}</span><span className="font-mono">₹ {money(r.netSalary, false)}</span></div>
+                    </button>
+                  </li>
+                ))}
+                {shown.length === 0 && <li className="p-4 text-center text-xs text-slate-400">No match.</li>}
+              </ul>
+            </aside>
+          )}
 
-          {/* Employee & Statutory Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-100 p-4 rounded-xl text-xs border border-slate-300">
-            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Employee ID:</span><span className="font-bold text-slate-900">{selectedRecord.employeeId}</span></div>
-            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Employee Name:</span><span className="font-bold text-slate-900">{selectedRecord.employeeName}</span></div>
-            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Department:</span><span className="font-bold text-slate-900">{selectedRecord.department}</span></div>
-            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Designation:</span><span className="font-bold text-slate-900">{selectedRecord.designation}</span></div>
-            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Working Days:</span><span className="font-bold text-slate-900">{selectedRecord.workingDays} Days</span></div>
-            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Paid Present Days:</span><span className="font-bold text-slate-900">{selectedRecord.presentDays} Days</span></div>
-            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">PF UAN No:</span><span className="font-bold text-slate-900 font-mono">100998877665</span></div>
-            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Bank A/C No:</span><span className="font-bold text-slate-900 font-mono">XXXX-XXXX-9901</span></div>
-          </div>
-
-          {/* Earnings vs Deductions Table */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-            {/* Earnings */}
-            <div className="border border-slate-300 rounded-xl overflow-hidden">
-              <div className="bg-slate-200 px-4 py-2 font-extrabold text-slate-900 border-b border-slate-300 uppercase tracking-wider flex justify-between">
-                <span>Gross Earnings</span>
-                <span>Amount (₹)</span>
+          {rec && (
+            <section className="space-y-3 min-w-0">
+              <div className="flex flex-wrap gap-2 print:hidden">
+                <button className={btnPrimary} disabled={!!busy} onClick={() => dl('pdf', `/payroll-records/${rec.id}/payslip-pdf/`, `payslip-${rec.employeeId}-${period}.pdf`)}><Download className="w-3.5 h-3.5" /> {busy === 'pdf' ? 'Preparing…' : 'Download PDF'}</button>
+                <button className={btn} onClick={() => printContent('printable-salary-payslip', { title: `Payslip_${rec.employeeName.replace(/\s+/g, '_')}_${rec.monthYear}` })}><Printer className="w-3.5 h-3.5" /> Print</button>
               </div>
-              <div className="p-4 space-y-2 text-slate-800 font-medium">
-                <div className="flex justify-between"><span>Basic Salary</span><span>₹{selectedRecord.basicSalary?.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span>House Rent Allowance (HRA)</span><span>₹{selectedRecord.hra?.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span>Special & Other Allowances</span><span>₹{selectedRecord.allowances?.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span>Overtime Amount</span><span>₹{selectedRecord.overtimeAmount?.toLocaleString()}</span></div>
-                <div className="flex justify-between font-extrabold text-slate-900 border-t border-slate-300 pt-2 text-sm">
-                  <span>Total Gross Earnings</span>
-                  <span>₹{selectedRecord.grossEarnings?.toLocaleString()}</span>
+
+              <div id="printable-salary-payslip" className="bg-white text-slate-900 rounded-2xl border border-slate-200 p-6 md:p-8 max-w-4xl space-y-5 print:border-0">
+                <div className="flex justify-between items-start border-b-2 border-blue-700 pb-3 gap-4">
+                  <div className="flex items-start gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/uma-mark.png" alt="" className="w-11 h-11 object-contain shrink-0" />
+                    <div>
+                      <h2 className="text-xl font-black text-blue-800 tracking-tight">{company?.companyName || 'UMA TECHNO FAB'}</h2>
+                      {addr && <p className="text-[11px] text-slate-600">{addr}</p>}
+                      <p className="text-[11px] text-slate-600">{[company?.phone && `Ph: ${company.phone}`, company?.email, company?.gstin && `GSTIN: ${company.gstin}`].filter(Boolean).join(' | ')}</p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-sm font-extrabold">SALARY SLIP</div>
+                    <div className="text-xs">For <b>{rec.monthYear}</b></div>
+                    <div className="text-[10px] font-mono text-slate-500">Ref: {rec.payrollNumber}</div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Deductions */}
-            <div className="border border-slate-300 rounded-xl overflow-hidden">
-              <div className="bg-slate-200 px-4 py-2 font-extrabold text-slate-900 border-b border-slate-300 uppercase tracking-wider flex justify-between">
-                <span>Deductions & Tax</span>
-                <span>Amount (₹)</span>
-              </div>
-              <div className="p-4 space-y-2 text-slate-800 font-medium">
-                <div className="flex justify-between"><span>Provident Fund (EPF 12%)</span><span>₹{selectedRecord.pfDeduction?.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span>ESIC (Employee 0.75%)</span><span>₹{selectedRecord.esiDeduction?.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span>Professional Tax (PT)</span><span>₹{selectedRecord.ptDeduction?.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span>Income Tax (TDS)</span><span>₹{selectedRecord.tdsDeduction?.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span>Advance / Loan EMI Recovery</span><span>₹{selectedRecord.loanAdvanceRecovery?.toLocaleString()}</span></div>
-                <div className="flex justify-between font-extrabold text-rose-700 border-t border-slate-300 pt-2 text-sm">
-                  <span>Total Deductions</span>
-                  <span>-₹{selectedRecord.totalDeductions?.toLocaleString()}</span>
+                <dl className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs">
+                  {[['Employee ID', rec.employeeId], ['Name', rec.employeeName], ['Department', rec.department], ['Designation', rec.designation], ['Date of joining', rec.joiningDate], ['PAN', rec.panNumber],
+                    ['UAN (PF)', rec.uanNumber], ['ESI No.', rec.esiNumber], ['Bank', rec.bankName], ['Bank A/C', rec.bankAccountNo], ['IFSC', rec.bankIfsc], ['Calendar days', n(rec.calendarDays)], ['Paid days', n(rec.paidDays)], ['LOP days', n(rec.lossOfPayDays)]]
+                    .map(([k, v]) => <div key={String(k)}><dt className="text-slate-500 text-[10px] font-semibold">{k}</dt><dd className="font-bold break-words">{v || '—'}</dd></div>)}
+                </dl>
+
+                <div className="grid md:grid-cols-2 gap-4 text-xs">
+                  <div className="border border-slate-300 rounded-xl overflow-hidden">
+                    <div className="bg-slate-200 px-3 py-2 font-extrabold flex justify-between"><span>EARNINGS</span><span>₹</span></div>
+                    <div className="p-3 space-y-1.5">{earn.map(([l, v]) => <div key={l} className="flex justify-between"><span>{l}</span><span className="font-mono">{money(v, false)}</span></div>)}
+                      <div className="flex justify-between border-t border-slate-300 pt-2 font-extrabold"><span>Total Earnings</span><span className="font-mono">{money(totalEarn, false)}</span></div></div>
+                  </div>
+                  <div className="border border-slate-300 rounded-xl overflow-hidden">
+                    <div className="bg-slate-200 px-3 py-2 font-extrabold flex justify-between"><span>DEDUCTIONS</span><span>₹</span></div>
+                    <div className="p-3 space-y-1.5">{ded.length ? ded.map(([l, v]) => <div key={l} className="flex justify-between"><span>{l}</span><span className="font-mono">{money(v, false)}</span></div>) : <div className="text-slate-400">No deductions</div>}
+                      <div className="flex justify-between border-t border-slate-300 pt-2 font-extrabold"><span>Total Deductions</span><span className="font-mono">{money(rec.totalDeductions, false)}</span></div></div>
+                  </div>
                 </div>
+
+                <div className="flex justify-between items-center rounded-xl border-2 border-blue-700 bg-blue-50 px-4 py-3">
+                  <span className="font-extrabold">NET PAY</span><span className="text-xl font-black font-mono">₹ {money(rec.netSalary, false)}</span>
+                </div>
+                {rec.status === 'Paid' && rec.paidDate && <p className="text-[11px] text-slate-600">Paid on {new Date(rec.paidDate).toLocaleDateString('en-IN')} via {rec.paymentMode || 'Bank Transfer'}{rec.paymentRef ? ` (Ref ${rec.paymentRef})` : ''}.</p>}
+                <p className="text-[10px] text-slate-500">Employer contribution (not deducted): PF ₹{money(rec.employerPf, false)}, ESI ₹{money(rec.employerEsi, false)}. This is a computer-generated payslip and does not require a signature.</p>
               </div>
-            </div>
-          </div>
-
-          {/* Net Salary Highlight Footer */}
-          <div className="bg-crm-brand- border-2 border-crm-brand- rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-crm-brand-">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-crm-brand-800 block">NET TAKE-HOME SALARY PAYABLE</span>
-              <div className="text-3xl font-black text-crm-brand- mt-1">₹{selectedRecord.netSalary?.toLocaleString()}</div>
-            </div>
-            <div className="text-xs text-right font-medium text-slate-600">
-              <div>Mode of Payment: Direct NEFT / RTGS Bank Transfer</div>
-              <div className="text-crm-brand-800 font-bold">Status: Processed & Disbursed</div>
-            </div>
-          </div>
-
-          {/* Signatures */}
-          <div className="pt-8 grid grid-cols-2 gap-8 text-center text-xs font-semibold text-slate-600">
-            <div>
-              <div className="border-b border-slate-400 pb-8 mb-2"></div>
-              <span>Employee Signature</span>
-            </div>
-            <div>
-              <div className="border-b border-slate-400 pb-8 mb-2"></div>
-              <span>Authorized HR Signatory (Uma Techno Fab)</span>
-            </div>
-          </div>
+            </section>
+          )}
         </div>
       )}
     </div>

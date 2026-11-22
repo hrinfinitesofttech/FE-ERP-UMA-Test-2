@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { request } from '../../../lib/apiClient';
 import { useERP } from '../../../context/ERPContext';
 import {
   Users,
@@ -29,7 +30,6 @@ export default function HRDashboardPage() {
     leaveRequests,
     wfhRequests,
     attendanceRegularizations,
-    payrollRecords,
     employeeExits,
     departments,
     salaryStructures,
@@ -61,7 +61,13 @@ export default function HRDashboardPage() {
   const lateToday = attendanceRecords.filter((a) => a.lateMinutes > 0).length;
   const pendingLeaves = leaveRequests.filter((l) => l.status === 'Pending').length;
   const pendingCorrections = attendanceRegularizations.filter((r) => r.status === 'Pending').length;
-  const pendingPayroll = payrollRecords.filter((p) => p.status === 'Pending Approval' || p.status === 'Draft').length;
+  // pending payroll comes from the real payroll records (not the old in-memory mock)
+  const [pendingPayroll, setPendingPayroll] = useState(0);
+  useEffect(() => {
+    request<any>('/payroll-records/?status=Draft', {}, true)
+      .then((r) => setPendingPayroll((Array.isArray(r) ? r : r?.results || []).length))
+      .catch(() => setPendingPayroll(0));
+  }, []);
   const noticePeriodEmployees = employeeExits.filter((e) => e.status === 'Notice Period').length;
 
   const totalMonthlyPayrollCost = salaryStructures.reduce((acc, curr) => acc + curr.totalCTC, 0);

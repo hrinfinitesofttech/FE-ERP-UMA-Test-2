@@ -1,127 +1,96 @@
 'use client';
 
-import React from 'react';
-import { useERP } from '../../../context/ERPContext';
-import { LayoutDashboard, DollarSign, Banknote, FileText, CheckCircle2, TrendingUp, BarChart3, ShieldCheck } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { payrollApi, money, errorText, currentPeriod, shiftPeriod, periodLabel } from '../../../lib/payrollApi';
+import { card, inputCls, btn, thCls, Loading, ErrorBanner } from '../attendance/_parts/shared';
 
 export default function PayrollDashboardPage() {
-  const { payrollRecords, salaryStructures, salaryComponents, employeeAdvanceLoans, reimbursementExpenses } = useERP();
+  const [period, setPeriod] = useState(currentPeriod());
+  const [sum, setSum] = useState<any>(null);
+  const [trend, setTrend] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const totalGrossPayroll = salaryStructures.reduce((sum, s) => sum + s.grossSalary, 0);
-  const totalNetDisbursement = salaryStructures.reduce((sum, s) => sum + s.netSalary, 0);
-  const totalEmployerPFESI = salaryStructures.reduce((sum, s) => sum + s.employerPF + s.employerESI, 0);
-  const totalCTC = salaryStructures.reduce((sum, s) => sum + s.totalCTC, 0);
+  const load = useCallback(async () => {
+    setLoading(true); setError('');
+    try { const [s, t] = await Promise.all([payrollApi.summary(period), payrollApi.trend()]); setSum(s); setTrend(t); }
+    catch (e) { setError(errorText(e)); } finally { setLoading(false); }
+  }, [period]);
+  useEffect(() => { load(); }, [load]);
 
-  const activeLoansCount = employeeAdvanceLoans.filter((l) => l.status === 'Active').length;
-  const pendingReimbursementsCount = reimbursementExpenses.filter((r) => r.status === 'Pending Manager').length;
+  const statuses = sum ? Object.entries(sum.byStatus || {}) as [string, any][] : [];
+  const tiles = sum ? [
+    ['Employees paid', sum.headcount, ''], ['Gross payroll', `₹ ${money(sum.gross, false)}`, ''], ['Net disbursement', `₹ ${money(sum.net, false)}`, 'text-emerald-700'],
+    ['Employer cost (CTC)', `₹ ${money(sum.ctc, false)}`, ''], ['Statutory payable', `₹ ${money(n(sum.pf) + n(sum.epf) + n(sum.esi) + n(sum.eesi) + n(sum.pt) + n(sum.tds), false)}`, 'text-amber-700'], ['Loan recovered', `₹ ${money(sum.loan, false)}`, ''],
+  ] : [];
+  function n(v: any) { return Number(v) || 0; }
 
   return (
-    <div className="p-6 space-y-6 bg-white text-[color:var(--crm-text-primary)] ">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
-            <LayoutDashboard className="w-7 h-7 text-emerald-700" />
-            Payroll Analytics & Executive Dashboard
-          </h1>
-          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
-            Financial Salary Costs, Statutory PF/ESI/TDS Deductions & Monthly Bank Disbursement Overview
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/hr/monthly-payroll"
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-sm transition cursor-pointer"
-          >
-            <Banknote className="w-4 h-4" /> Run Payroll Processing
-          </Link>
+    <div className="p-4 md:p-6 space-y-4 text-[color:var(--crm-text-primary)]">
+      <div className={`${card} p-5 flex flex-wrap items-center justify-between gap-3`}>
+        <div><h1 className="text-xl font-extrabold">Payroll Dashboard</h1><p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">Live from the processed payroll — {periodLabel(period)}</p></div>
+        <div className="flex items-center gap-2">
+          <button className={btn} onClick={() => setPeriod(shiftPeriod(period, -1))} aria-label="Previous month"><ChevronLeft className="w-3.5 h-3.5" /></button>
+          <input type="month" value={period} onChange={(e) => e.target.value && setPeriod(e.target.value)} className={inputCls} aria-label="Month" />
+          <button className={btn} onClick={() => setPeriod(shiftPeriod(period, 1))} aria-label="Next month"><ChevronRight className="w-3.5 h-3.5" /></button>
         </div>
       </div>
 
-      {/* Primary Financial KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl p-5 space-y-2 shadow-lg">
-          <div className="flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
-            <span>Total Monthly Gross Payroll</span>
-            <DollarSign className="w-4 h-4 text-emerald-700" />
-          </div>
-          <div className="text-2xl font-black text-emerald-700">₹{(totalGrossPayroll / 100000).toFixed(2)} Lakhs</div>
-          <span className="text-[11px] text-[color:var(--crm-text-secondary)]">Basic + HRA + Allowances</span>
-        </div>
+      {loading ? <Loading /> : error ? <ErrorBanner msg={error} retry={load} /> : (
+        <>
+          {sum.headcount === 0 ? (
+            <div className={`${card} p-10 text-center text-xs text-slate-500`}>No payroll processed for {periodLabel(period)}. <Link className="underline font-bold" href="/hr/monthly-payroll">Run payroll</Link></div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                {tiles.map(([l, v, c]) => <div key={String(l)} className={`${card} p-4`}><div className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{l}</div><div className={`text-lg font-extrabold font-mono mt-1 ${c}`}>{String(v)}</div></div>)}
+              </div>
+              <div className="flex flex-wrap gap-2 text-xs">
+                {statuses.map(([s, v]) => <span key={s} className="px-3 py-1.5 rounded-full bg-white border border-slate-200 font-bold">{s}: {v.count} · ₹ {money(v.net, false)}</span>)}
+              </div>
+            </>
+          )}
 
-        <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl p-5 space-y-2 shadow-lg">
-          <div className="flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
-            <span>Net Employee Disbursement</span>
-            <Banknote className="w-4 h-4 text-crm-brand-500" />
-          </div>
-          <div className="text-2xl font-black text-crm-brand-500">₹{(totalNetDisbursement / 100000).toFixed(2)} Lakhs</div>
-          <span className="text-[11px] text-crm-brand-500">Direct Bank Transfer</span>
-        </div>
-
-        <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl p-5 space-y-2 shadow-lg">
-          <div className="flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
-            <span>Employer PF & ESI Contribution</span>
-            <ShieldCheck className="w-4 h-4 text-crm-brand-500" />
-          </div>
-          <div className="text-2xl font-black text-crm-brand-500">₹{totalEmployerPFESI?.toLocaleString()}</div>
-          <span className="text-[11px] text-[color:var(--crm-text-secondary)]">Statutory Compliance Cost</span>
-        </div>
-
-        <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl p-5 space-y-2 shadow-lg">
-          <div className="flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
-            <span>Total Monthly Company CTC</span>
-            <TrendingUp className="w-4 h-4 text-pink-700" />
-          </div>
-          <div className="text-2xl font-black text-[color:var(--crm-text-primary)]">₹{(totalCTC / 100000).toFixed(2)} Lakhs</div>
-          <span className="text-[11px] text-pink-700">Complete Workforce Cost</span>
-        </div>
-      </div>
-
-      {/* Grid Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Active Loan & Reimbursements Summary */}
-        <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl p-5 space-y-4 shadow-lg">
-          <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-crm-brand-600" />
-            Advances, Loans & Expense Recoveries
-          </h3>
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <div className="p-4 bg-white/60 rounded-xl border border-[#E2E7EF]/50 space-y-1">
-              <span className="text-[color:var(--crm-text-secondary)]">Active Salary Advances / Loans</span>
-              <div className="text-xl font-bold text-amber-700">{activeLoansCount} Active EMI Recovery</div>
-              <span className="text-[11px] text-[color:var(--crm-text-secondary)]">Auto Deducted from Monthly Payroll</span>
+          <div className="grid lg:grid-cols-2 gap-4">
+            <div className={`${card} p-4`}>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3">Last 6 months</h3>
+              {trend.length === 0 ? <p className="text-xs text-slate-400 py-10 text-center">No history yet.</p> : (
+                <div style={{ width: '100%', height: 260 }}>
+                  <ResponsiveContainer>
+                    <BarChart data={trend.map((t) => ({ ...t, label: t.period.slice(2).replace('-', '/') }))} margin={{ left: 0, right: 8 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="label" fontSize={11} />
+                      <YAxis fontSize={11} tickFormatter={(v) => (v >= 100000 ? `${(v / 100000).toFixed(1)}L` : `${Math.round(v / 1000)}k`)} />
+                      <Tooltip formatter={(v: any) => `₹ ${money(v, false)}`} />
+                      <Legend />
+                      <Bar dataKey="gross" name="Gross" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="net" name="Net pay" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
-            <div className="p-4 bg-white/60 rounded-xl border border-[#E2E7EF]/50 space-y-1">
-              <span className="text-[color:var(--crm-text-secondary)]">Pending Reimbursements</span>
-              <div className="text-xl font-bold text-rose-700">{pendingReimbursementsCount} Requests</div>
-              <span className="text-[11px] text-[color:var(--crm-text-secondary)]">Awaiting Manager / Accounts Approval</span>
+
+            <div className={card}>
+              <div className="p-4 border-b border-[color:var(--crm-border-default)]"><h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">Department-wise salary</h3></div>
+              <table className="w-full text-xs">
+                <thead className="bg-slate-50"><tr><th className={thCls}>Department</th><th className={`${thCls} text-right`}>Staff</th><th className={`${thCls} text-right`}>Gross</th><th className={`${thCls} text-right`}>Net</th></tr></thead>
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
+                  {(sum?.byDepartment || []).map((d: any) => <tr key={d.department}><td className="px-4 py-2 font-medium">{d.department}</td><td className="px-4 text-right">{d.headcount}</td><td className="px-4 text-right font-mono">{money(d.gross)}</td><td className="px-4 text-right font-mono font-bold">{money(d.net)}</td></tr>)}
+                  {!(sum?.byDepartment || []).length && <tr><td colSpan={4} className="p-8 text-center text-slate-400">No data.</td></tr>}
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
 
-        {/* Quick Links */}
-        <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl p-5 space-y-4 shadow-lg">
-          <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-emerald-700" />
-            Payroll Workflow Modules
-          </h3>
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <Link href="/hr/salary-structures" className="p-3 bg-white/80 hover:bg-[#F4F6FA]/60 border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] font-semibold transition text-center">
-              Salary Structure Master
-            </Link>
-            <Link href="/hr/salary-components" className="p-3 bg-white/80 hover:bg-[#F4F6FA]/60 border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] font-semibold transition text-center">
-              PF/ESI Statutory Rules
-            </Link>
-            <Link href="/hr/payroll-approvals" className="p-3 bg-white/80 hover:bg-[#F4F6FA]/60 border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] font-semibold transition text-center">
-              Payroll Approval & Lock
-            </Link>
-            <Link href="/hr/payslips" className="p-3 bg-white/80 hover:bg-[#F4F6FA]/60 border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] font-semibold transition text-center">
-              Generate PDF Payslips
-            </Link>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {[['/hr/salary-structures', 'Salary structures'], ['/hr/monthly-payroll', 'Monthly payroll'], ['/hr/payroll-approvals', 'Approvals'], ['/hr/payslips', 'Payslips'], ['/hr/advances', 'Advances & loans'], ['/hr/overtime', 'Overtime']].map(([h, l]) => <Link key={h} href={h} className="px-3 py-2 rounded-xl bg-white border border-slate-200 font-bold hover:bg-slate-50">{l}</Link>)}
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }

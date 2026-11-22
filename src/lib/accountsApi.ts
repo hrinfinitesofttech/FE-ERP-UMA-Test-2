@@ -9,9 +9,24 @@ const qs = (p?: Record<string, any>) => {
   const e = Object.entries(p).filter(([, v]) => v !== undefined && v !== null && v !== '');
   return e.length ? '?' + e.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join('&') : '';
 };
-const get = <T = any>(url: string) => request<T>(url, {}, true);
-const send = <T = any>(method: string, url: string, body?: any) =>
-  request<T>(url, { method, body: body === undefined ? undefined : JSON.stringify(body) });
+/**
+ * The backend renders JSON in camelCase (djangorestframework-camel-case). The Accounts pages use the
+ * snake_case names the API models define, so convert response keys back (e.g. financialYear -> financial_year).
+ * Keys without a lower->upper transition ("Pending", "Inflow") are left untouched.
+ */
+const snakeKey = (k: string) => k.replace(/([a-z0-9])([A-Z])/g, (_m, a, b) => `${a}_${b.toLowerCase()}`);
+export function snakeize<T = any>(v: any): T {
+  if (Array.isArray(v)) return v.map((x) => snakeize(x)) as any;
+  if (v && typeof v === 'object') {
+    const o: any = {};
+    for (const [k, val] of Object.entries(v)) o[snakeKey(k)] = snakeize(val);
+    return o;
+  }
+  return v;
+}
+const get = async <T = any>(url: string) => snakeize<T>(await request<any>(url, {}, true));
+const send = async <T = any>(method: string, url: string, body?: any) =>
+  snakeize<T>(await request<any>(url, { method, body: body === undefined ? undefined : JSON.stringify(body) }));
 
 export const accountsApi = {
   status: () => get('/accounting/setup/status/'),
