@@ -1,6 +1,16 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { AccessPicker } from './AccessPicker';
+import {
+  PAGE_REGISTRY,
+  actionsFor,
+  buildCustomPermissions,
+  getPageGrants,
+  modulesFromGrants,
+  normalizeModuleId,
+  type PageGrants,
+} from '@/lib/pageRegistry';
 import {
   UserPlus,
   Edit2,
@@ -38,6 +48,8 @@ interface EmployeeFormModalProps {
   onClose: () => void;
   employeeToEdit?: Employee | null; // null if creating a new employee
   onSaved: (employee: Employee) => void;
+  /** Open directly on a tab (e.g. 'access' from the permissions shortcut). */
+  initialTab?: 'personal' | 'employment' | 'login' | 'access';
 }
 
 export function EmployeeFormModal({
@@ -45,6 +57,7 @@ export function EmployeeFormModal({
   onClose,
   employeeToEdit,
   onSaved,
+  initialTab,
 }: EmployeeFormModalProps) {
   const {
     currentUser,
@@ -95,6 +108,10 @@ export function EmployeeFormModal({
   });
 
   const [initialDepartmentId, setInitialDepartmentId] = useState('');
+  // Page-level access (modules -> pages -> actions)
+  const [selectedModules, setSelectedModules] = useState<string[]>([]);
+  const [pageGrants, setPageGrants] = useState<PageGrants>({});
+  const [accessImported, setAccessImported] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -111,6 +128,7 @@ export function EmployeeFormModal({
 
   useEffect(() => {
     if (isOpen) {
+      setActiveTab(initialTab || 'personal');
       setServerError('');
       setErrors({});
       if (employeeToEdit) {
@@ -146,7 +164,36 @@ export function EmployeeFormModal({
           canExportData: employeeToEdit.canExportData !== false,
         });
         setInitialDepartmentId(employeeToEdit.departmentId || '');
+
+        // Load page-level access. Employees saved before this feature (no `pages`)
+        // are imported once: their current modules become "all pages · view" (+ legacy actions).
+        const existing = getPageGrants(employeeToEdit);
+        if (existing) {
+          setPageGrants(existing);
+          setSelectedModules(modulesFromGrants(existing));
+          setAccessImported(false);
+        } else {
+          const legacyMods = Array.from(
+            new Set(((employeeToEdit.assignedModules as string[]) || []).map((m) => normalizeModuleId(m)))
+          ).filter((m) => PAGE_REGISTRY.some((r) => r.id === m));
+          const legacyPerms: Record<string, any> = (employeeToEdit as any).customPermissions || {};
+          const imported: PageGrants = {};
+          legacyMods.forEach((mid) => {
+            const mod = PAGE_REGISTRY.find((r) => r.id === mid)!;
+            const legacyActs: string[] = Array.isArray(legacyPerms[mid]) ? legacyPerms[mid] : [];
+            mod.pages.forEach((pg) => {
+              const allowed = actionsFor(pg) as string[];
+              imported[pg.key] = Array.from(new Set(['view', ...legacyActs.filter((a) => allowed.includes(a))]));
+            });
+          });
+          setPageGrants(imported);
+          setSelectedModules(legacyMods);
+          setAccessImported(legacyMods.length > 0);
+        }
       } else {
+        setPageGrants({});
+        setSelectedModules([]);
+        setAccessImported(false);
         // Initialize new employee with first department defaults
         const defaultDept = departments[0];
         setFormData({
@@ -249,6 +296,9 @@ export function EmployeeFormModal({
       departmentName: dept?.name || '',
       department: dept?.name || '',
       reportingManagerName: mgr ? `${mgr.firstName} ${mgr.lastName}`.trim() : '',
+      // Page-level access: authoritative `pages` + legacy module lists, and the modules actually granted
+      customPermissions: buildCustomPermissions(pageGrants, (employeeToEdit as any)?.customPermissions),
+      assignedModules: modulesFromGrants(pageGrants),
       roleName: role?.name || '',
       role: role?.name || '',
     };
@@ -476,17 +526,6 @@ export function EmployeeFormModal({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">Profile Photo URL</label>
-                <input
-                  type="text"
-                  value={formData.profilePhoto}
-                  onChange={(e) => setFormData({ ...formData, profilePhoto: e.target.value })}
-                  placeholder="e.g. /avatars/employee1.jpg"
-                  className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700"
-                />
-              </div>
-
               <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-stone-700 mb-1">
                   Residential Address
@@ -585,17 +624,6 @@ export function EmployeeFormModal({
                   label="Joining Date"
                   value={formData.joiningDate}
                   onChange={(val) => setFormData({ ...formData, joiningDate: val })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">Work Location</label>
-                <input
-                  type="text"
-                  value={formData.workLocation}
-                  onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })}
-                  placeholder="e.g. Makarpura Heavy Works, Vadodara"
-                  className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700"
                 />
               </div>
 
@@ -701,159 +729,24 @@ export function EmployeeFormModal({
           {/* SECTION 4: ACCESS CONFIGURATION & DEPARTMENT DEFAULTS (PHASE 2.3) */}
           {activeTab === 'access' && (
             <div className="space-y-5">
-              {/* Department Driven Defaults Card */}
-              <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Building className="w-4 h-4 text-crm-brand-700" />
-                    <span className="text-xs font-bold text-stone-900">
-                      Department-Driven Defaults: {selectedDepartment?.name}
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-mono text-stone-500 bg-stone-200 px-2 py-0.5 rounded">
-                    Code: {selectedDepartment?.code}
-                  </span>
+              {accessImported && (
+                <div className="p-3 rounded-lg border border-amber-200 bg-amber-50 text-[11px] text-amber-800 leading-relaxed">
+                  This employee's existing modules were imported as <strong>all pages · view</strong>. Review the pages
+                  below and click <strong>Save Changes</strong> to switch them to page-level access.
                 </div>
+              )}
 
-                <div>
-                  <span className="text-[11px] font-semibold text-stone-600 block mb-1">
-                    Department Default Modules (applied only if no modules are selected below):
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedDepartment?.assignedModules?.length ? (
-                      selectedDepartment.assignedModules.map((m) => (
-                        <span
-                          key={m}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded text-xs font-medium"
-                        >
-                          <Check className="w-3 h-3 text-blue-600" />
-                          <span>{m}</span>
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-stone-400">No default modules defined for this department.</span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <AccessPicker
+                selectedModules={selectedModules}
+                grants={pageGrants}
+                onChange={({ selectedModules: sm, grants: g }) => {
+                  setSelectedModules(sm);
+                  setPageGrants(g);
+                  setAccessImported(false);
+                }}
+              />
 
-              {/* Additional Modules Selection */}
-              <div>
-                <label className="block text-xs font-semibold text-stone-800 mb-1.5">
-                  Select Assigned Modules (Department Defaults + Custom Additions)
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {ERP_MODULES.map((mod) => {
-                    const isDeptDefault = selectedDepartment?.assignedModules?.includes(mod.id);
-                    const isChecked = formData.assignedModules.includes(mod.id);
 
-                    return (
-                      <label
-                        key={mod.id}
-                        className={cn(
-                          'flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors',
-                          isChecked ? 'bg-crm-brand-50/60 border-crm-brand-300 text-stone-900' : 'bg-white border-stone-200 text-stone-600'
-                        )}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFormData({ ...formData, assignedModules: [...formData.assignedModules, mod.id] });
-                            } else {
-                              setFormData({ ...formData, assignedModules: formData.assignedModules.filter((m) => m !== mod.id) });
-                            }
-                          }}
-                          className="w-3.5 h-3.5 text-crm-brand-700 rounded border-stone-300"
-                        />
-                        <span className="truncate">{mod.name}</span>
-                        {isDeptDefault && (
-                          <span className="ml-auto text-[9px] bg-blue-100 text-blue-700 px-1 py-0.2 rounded font-medium">
-                            Dept
-                          </span>
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Role Type & Scope */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <CustomSelect
-                    label="Role Type"
-                    value={formData.roleType}
-                    onChange={(val) => setFormData({ ...formData, roleType: val as any })}
-                    options={[
-                      { value: 'employee', label: 'Department Employee' },
-                      { value: 'department_manager', label: 'Department Manager' },
-                      { value: 'admin', label: 'Administrator' },
-                      ...(isSuperAdmin ? [{ value: 'super_admin', label: 'Super Admin' }] : []),
-                    ]}
-                  />
-                </div>
-
-                <div>
-                  <CustomSelect
-                    label="Data Visibility Scope"
-                    value={formData.dataScope}
-                    onChange={(val) => setFormData({ ...formData, dataScope: val as any })}
-                    options={[
-                      { value: 'own', label: 'Own Records Only (Highest Isolation)' },
-                      { value: 'assigned', label: 'Assigned Records (Assigned Tasks & Jobs)' },
-                      { value: 'department', label: 'Department Records (All Team Records)' },
-                      ...((isSuperAdmin || currentUser?.dataScope === 'all')
-                        ? [{ value: 'all', label: 'All Company Records (Full Visibility)' }]
-                        : []),
-                    ]}
-                  />
-                </div>
-              </div>
-
-              {/* Operations Toggles */}
-              <div>
-                <label className="block text-xs font-semibold text-stone-800 mb-2">Authority Flags</label>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <label className="flex items-center gap-2 p-2 bg-stone-50 border border-stone-200 rounded-lg cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.canAssignTasks}
-                      onChange={(e) => setFormData({ ...formData, canAssignTasks: e.target.checked })}
-                      className="w-3.5 h-3.5 text-crm-brand-700 rounded border-stone-300"
-                    />
-                    <span>Can Assign Tasks</span>
-                  </label>
-                  <label className="flex items-center gap-2 p-2 bg-stone-50 border border-stone-200 rounded-lg cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.canApproveLeaves}
-                      onChange={(e) => setFormData({ ...formData, canApproveLeaves: e.target.checked })}
-                      className="w-3.5 h-3.5 text-crm-brand-700 rounded border-stone-300"
-                    />
-                    <span>Can Approve Leaves</span>
-                  </label>
-                  <label className="flex items-center gap-2 p-2 bg-stone-50 border border-stone-200 rounded-lg cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.canManageAttendance}
-                      onChange={(e) => setFormData({ ...formData, canManageAttendance: e.target.checked })}
-                      className="w-3.5 h-3.5 text-crm-brand-700 rounded border-stone-300"
-                    />
-                    <span>Can Manage Attendance</span>
-                  </label>
-                  <label className="flex items-center gap-2 p-2 bg-stone-50 border border-stone-200 rounded-lg cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.canExportData}
-                      onChange={(e) => setFormData({ ...formData, canExportData: e.target.checked })}
-                      className="w-3.5 h-3.5 text-crm-brand-700 rounded border-stone-300"
-                    />
-                    <span>Can Export Data</span>
-                  </label>
-                </div>
-              </div>
             </div>
           )}
 
