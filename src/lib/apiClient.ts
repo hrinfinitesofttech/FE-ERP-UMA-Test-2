@@ -1998,8 +1998,8 @@ export const api = {
       create: (data: any) => request<any>('/overtime-records/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/overtime-records/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/overtime-records/${id}/`, { method: 'DELETE' }),
-      approve: (id: string) => request<any>(`/overtime-records/${id}/approve_overtime/`, { method: 'POST' }),
-      reject: (id: string) => request<any>(`/overtime-records/${id}/reject_overtime/`, { method: 'POST' }),
+      approve: (id: string) => request<any>(`/overtime-records/${id}/approve/`, { method: 'POST' }),
+      reject: (id: string) => request<any>(`/overtime-records/${id}/reject/`, { method: 'POST' }),
     },
     earlyCheckouts: {
       list: () => request<any[]>('/early-checkouts/'),
