@@ -560,7 +560,7 @@ function ProductionCompletionContent() {
                     className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer w-fit"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>+ Add Custom Inspection Stage</span>
+                    <span>Add Custom Inspection Stage</span>
                   </button>
                 </div>
 
@@ -785,7 +785,7 @@ function ProductionCompletionContent() {
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>+ New QC Inspection Entry</span>
+                <span>New QC Inspection Entry</span>
               </button>
               <Link
                 href="/production/dispatch"

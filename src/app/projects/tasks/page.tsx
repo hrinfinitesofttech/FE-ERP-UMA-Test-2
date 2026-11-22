@@ -429,7 +429,7 @@ export default function TaskManagementPage() {
               className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-crm-brand-700 hover:bg-crm-brand-800 rounded-lg shadow-sm transition-all hover:shadow"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Add Department Tasks (Multi-Line)</span>
+              <span>Add Department Tasks (Multi-Line)</span>
             </button>
           </div>
         </div>
@@ -583,7 +583,7 @@ export default function TaskManagementPage() {
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-crm-brand-700 hover:text-crm-brand-800"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>+ Add more tasks to {selectedDeptFilter}</span>
+                <span>Add more tasks to {selectedDeptFilter}</span>
               </button>
             )}
           </div>
@@ -600,7 +600,7 @@ export default function TaskManagementPage() {
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-crm-brand-700 hover:bg-crm-brand-800 rounded-lg shadow-sm"
               >
                 <Plus className="w-4 h-4" />
-                <span>+ Add Tasks to {selectedDeptFilter === 'all' ? 'Department' : selectedDeptFilter}</span>
+                <span>Add Tasks to {selectedDeptFilter === 'all' ? 'Department' : selectedDeptFilter}</span>
               </button>
             </div>
           ) : (
@@ -781,7 +781,7 @@ export default function TaskManagementPage() {
                     className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-crm-brand-700 hover:bg-crm-brand-800 rounded-lg shadow-2xs transition-all"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>+ Add Line</span>
+                    <span>Add Line</span>
                   </button>
                 </div>
 
@@ -878,7 +878,7 @@ export default function TaskManagementPage() {
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-crm-brand-700 hover:text-crm-brand-800"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>+ Add Another Task Line</span>
+                    <span>Add Another Task Line</span>
                   </button>
                   <span className="text-[11px] text-[color:var(--crm-text-secondary)]">
                     Total lines to save: <strong>{taskRows.filter((r) => r.taskName.trim().length > 0).length}</strong>

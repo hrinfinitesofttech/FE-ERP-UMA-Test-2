@@ -21,6 +21,14 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
+/** Alerts store a target URL; map legacy/non-existent routes to real pages so "Take Action" never 404s. */
+const ALERT_ROUTE_ALIASES: Record<string, string> = {
+  '/production/jobs': '/production/planning',
+  '/production/work-orders': '/production/planning',
+  '/store/stock-alerts': '/store/reorder',
+};
+const resolveAlertTarget = (url?: string) => (url && ALERT_ROUTE_ALIASES[url]) || url || '/integration/alert-center';
+
 export default function AlertCenterPage() {
   const { centralAlerts, dismissCentralAlert } = useERP();
   const [selectedModule, setSelectedModule] = useState<string>('all');
@@ -129,7 +137,7 @@ export default function AlertCenterPage() {
                 Dismiss
               </button>
               <Link
-                href={alt.targetUrl}
+                href={resolveAlertTarget(alt.targetUrl)}
                 className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5"
               >
                 <span>Take Action</span>

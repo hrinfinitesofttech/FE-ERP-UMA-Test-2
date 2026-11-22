@@ -785,7 +785,7 @@ function FollowUpFormContent() {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>+ Add Next Follow-up</span>
+                      <span>Add Next Follow-up</span>
                     </button>
                   )}
                 </div>

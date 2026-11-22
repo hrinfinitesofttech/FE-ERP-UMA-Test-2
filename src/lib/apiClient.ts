@@ -1822,13 +1822,15 @@ export const api = {
     designations: () => request<any[]>('/designations/'),
     shifts: () => request<any[]>('/shifts/'),
     attendance: {
-      list: (params?: { employeeId?: string; date?: string; status?: string }) => {
+      list: (params?: { employeeId?: string; date?: string; status?: string; dateFrom?: string; dateTo?: string }) => {
         let query = '';
         if (params) {
           const q = new URLSearchParams();
           if (params.employeeId) q.append('employee_id', params.employeeId);
           if (params.date) q.append('date', params.date);
           if (params.status) q.append('status', params.status);
+          if (params.dateFrom) q.append('date_from', params.dateFrom);
+          if (params.dateTo) q.append('date_to', params.dateTo);
           query = `?${q.toString()}`;
         }
         return request<any[]>(`/attendance-records/${query}`);

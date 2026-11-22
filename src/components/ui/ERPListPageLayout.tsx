@@ -222,7 +222,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
               title={addNewLabel}
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span className="hidden sm:inline">{addNewLabel}</span>
+              <span className="hidden sm:inline">{String(addNewLabel).replace(/^\s*\+\s*/, '')}</span>
             </Link>
           ) : onAddNew ? (
             <button
@@ -231,7 +231,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
               title={addNewLabel}
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span className="hidden sm:inline">{addNewLabel}</span>
+              <span className="hidden sm:inline">{String(addNewLabel).replace(/^\s*\+\s*/, '')}</span>
             </button>
           ) : null}
 

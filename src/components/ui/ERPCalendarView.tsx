@@ -310,7 +310,7 @@ export function ERPCalendarView({
               className="px-3 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>{addEventLabel}</span>
+              <span>{String(addEventLabel).replace(/^\s*\+\s*/, '')}</span>
             </button>
           )}
         </div>

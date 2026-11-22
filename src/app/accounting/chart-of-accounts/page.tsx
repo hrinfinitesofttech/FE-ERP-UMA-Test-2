@@ -127,8 +127,8 @@ export default function ChartOfAccountsPage() {
       </div>
 
       {/* Accounts Table */}
-      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden">
-        <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)]">
+      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-x-auto">
+        <table className="w-full min-w-[800px] text-left text-xs text-[color:var(--crm-text-secondary)]">
           <thead className="bg-[#F4F6FA]/80 text-[color:var(--crm-text-secondary)] uppercase font-semibold text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
             <tr>
               <th className="py-3.5 px-4">Account Code</th>

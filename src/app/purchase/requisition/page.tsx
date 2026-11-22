@@ -554,7 +554,7 @@ export default function PurchaseRequisitionPage() {
           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[color:var(--crm-brand-600)] hover:bg-[#6D28D9] text-white transition shadow-xs cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>+ Create Requisition</span>
+          <span>Create Requisition</span>
         </button>
       </div>
 

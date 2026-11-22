@@ -248,7 +248,7 @@ function SupplierPaymentsContent() {
             className="flex items-center gap-2 bg-[color:var(--crm-text-primary)] hover:bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer active:scale-95"
           >
             <Plus className="w-4 h-4 text-rose-400" />
-            <span>+ Make Payment</span>
+            <span>Make Payment</span>
           </button>
         </div>
       </div>

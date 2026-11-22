@@ -287,7 +287,7 @@ function CustomerReceiptsContent() {
             className="flex items-center gap-2 bg-[color:var(--crm-brand-700)] hover:bg-[#1B3489] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Record Customer Receipt</span>
+            <span>Record Customer Receipt</span>
           </button>
         </div>
       </div>

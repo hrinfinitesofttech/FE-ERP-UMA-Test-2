@@ -777,7 +777,7 @@ function ExhibitionsContent() {
                       className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-2xs transition active:scale-95 cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>+ Add Lead from Expo</span>
+                      <span>Add Lead from Expo</span>
                     </button>
                     <Link
                       href={`/crm/leads/new?source=exhibition&expoId=${selectedExpo.id}&expoName=${encodeURIComponent(selectedExpo.expoName)}`}
@@ -805,7 +805,7 @@ function ExhibitionsContent() {
                           className="px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md text-[11px] font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
                         >
                           <Plus className="w-3 h-3" />
-                          <span>+ Add Another Line</span>
+                          <span>Add Another Line</span>
                         </button>
                         <button
                           type="button"

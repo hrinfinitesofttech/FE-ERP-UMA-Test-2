@@ -1573,7 +1573,7 @@ export default function PurchaseRequestsPage() {
                     className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
                   >
                     <Plus className="w-3.5 h-3.5 text-crm-brand-600" />
-                    <span>+ Add Term Line</span>
+                    <span>Add Term Line</span>
                   </button>
                 </div>
 

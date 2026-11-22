@@ -423,6 +423,8 @@ interface ERPContextType {
   availableEmployees: Employee[];
   isAuthenticated: boolean;
   isInitialLoading: boolean;
+  /** True while the module data needed by the CURRENT page is still being fetched for the first time. */
+  isRouteDataLoading: boolean;
   isAuthReady: boolean;
   login: (username: string, pass: string) => boolean;
   loginWithBackend: (username: string, pass: string) => Promise<{ success: boolean; error?: string }>;
@@ -1114,6 +1116,10 @@ const ERPContext = createContext<ERPContextType | undefined>(undefined);
 export function ERPProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const lastSyncTimes = useRef<Record<string, number>>({});
+  // First-load tracking: a page shows a loader until the module data it needs has arrived once this session
+  const loadedModulesRef = useRef<Set<string>>(new Set());
+  const [routeModuleLoading, setRouteModuleLoading] = useState(false);
+  const [bootstrapSynced, setBootstrapSynced] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
 
   // Master state initialized with deep relational seed
@@ -3219,6 +3225,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       console.warn('Bootstrap load error:', err);
     } finally {
       setIsInitialLoading(false);
+      setBootstrapSynced(true);
     }
   }, []);
 
@@ -4703,7 +4710,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     try {
       const results = await Promise.allSettled([
         api.hr.shifts(),
-        api.hr.attendance.list(),
+        // Recent window only: the full attendance history is several MB and grows every day
+        api.hr.attendance.list({ dateFrom: new Date(Date.now() - 62 * 86400000).toISOString().slice(0, 10) }),
         api.hr.leaves.list(),
         api.hr.payroll.list(),
         api.hr.onboardings.list(),
@@ -4959,37 +4967,59 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Route-Aware On-Demand Module Fetching (Uses 60s cache window to avoid refetching on every tab switch)
+  // Route-Aware On-Demand Module Fetching (60s cache window avoids refetching on every tab switch).
+  // The first time a module is needed in a session the page shows a loader until its data has arrived.
   useEffect(() => {
     if (!pathname) return;
-    if (pathname === '/' || pathname === '/dashboard') {
+    const p = pathname;
+    const keys: string[] = [];
+    if (p === '/' || p === '/dashboard') {
       // The home dashboard summarises every module, so it needs all of them loaded
-      syncCRM(false).catch(() => {});
-      syncProjects(false).catch(() => {});
-      syncProduction(false).catch(() => {});
-      syncStore(false).catch(() => {});
-      syncIntegration(false).catch(() => {});
-    } else if (pathname.startsWith('/users') || pathname.startsWith('/hr') || pathname.startsWith('/payroll')) {
-      syncHR(false).catch(() => {});
-    } else if (pathname.startsWith('/crm') || pathname === '/sales') {
-      syncCRM(false).catch(() => {});
-    } else if (pathname.startsWith('/projects') || pathname.startsWith('/project')) {
-      syncProjects(false).catch(() => {});
-    } else if (pathname.startsWith('/designer') || pathname.startsWith('/engineering') || pathname.startsWith('/design')) {
-      syncDesigner(false).catch(() => {});
-    } else if (pathname.startsWith('/purchase') || pathname.startsWith('/procurement')) {
-      syncPurchase(false).catch(() => {});
-    } else if (pathname.startsWith('/store') || pathname.startsWith('/inventory') || pathname.startsWith('/warehouse')) {
-      syncStore(false).catch(() => {});
-    } else if (pathname.startsWith('/production') || pathname.startsWith('/manufacturing')) {
-      syncProduction(false).catch(() => {});
-    } else if (pathname.startsWith('/maintenance') || pathname.startsWith('/service')) {
-      syncMaintenance(false).catch(() => {});
-    } else if (pathname.startsWith('/accounting') || pathname.startsWith('/accounts') || pathname.startsWith('/finance')) {
-      syncAccounting(false).catch(() => {});
-    } else if (pathname.startsWith('/integration') || pathname.startsWith('/admin') || pathname === '/' || pathname === '/dashboard') {
-      syncIntegration(false).catch(() => {});
+      keys.push('crm', 'projects', 'production', 'store', 'integration');
+    } else if (p.startsWith('/users') || p.startsWith('/hr') || p.startsWith('/payroll')) keys.push('hr');
+    else if (p.startsWith('/crm') || p === '/sales') keys.push('crm');
+    else if (p.startsWith('/projects') || p.startsWith('/project')) keys.push('projects');
+    else if (p.startsWith('/designer') || p.startsWith('/engineering') || p.startsWith('/design')) keys.push('designer');
+    else if (p.startsWith('/purchase') || p.startsWith('/procurement')) keys.push('purchase');
+    else if (p.startsWith('/store/bom-verification')) keys.push('store', 'designer', 'projects', 'purchase'); // BOMs, project names, existing PRs
+    else if (p.startsWith('/store') || p.startsWith('/inventory') || p.startsWith('/warehouse')) keys.push('store');
+    else if (p.startsWith('/production') || p.startsWith('/manufacturing')) keys.push('production');
+    else if (p.startsWith('/maintenance') || p.startsWith('/service')) keys.push('maintenance');
+    else if (p.startsWith('/accounting') || p.startsWith('/accounts') || p.startsWith('/finance')) keys.push('accounting');
+    else if (p.startsWith('/integration') || p.startsWith('/admin')) keys.push('integration');
+    if (keys.length === 0) {
+      setRouteModuleLoading(false);
+      return;
     }
+
+    const runners: Record<string, (force: boolean) => Promise<any>> = {
+      crm: syncCRM, projects: syncProjects, designer: syncDesigner, purchase: syncPurchase, store: syncStore,
+      production: syncProduction, maintenance: syncMaintenance, hr: syncHR, accounting: syncAccounting,
+      integration: syncIntegration,
+    };
+    const firstLoad = keys.filter((k) => !loadedModulesRef.current.has(k));
+    const all = Promise.allSettled(keys.map((k) => Promise.resolve(runners[k](false)).catch(() => {})));
+    if (firstLoad.length === 0) {
+      setRouteModuleLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setRouteModuleLoading(true);
+    // Safety net: never keep the loader forever if a request hangs
+    const safety = setTimeout(() => {
+      if (!cancelled) setRouteModuleLoading(false);
+    }, 25000);
+    all.then(() => {
+      firstLoad.forEach((k) => loadedModulesRef.current.add(k));
+    }).finally(() => {
+      clearTimeout(safety);
+      if (!cancelled) setRouteModuleLoading(false);
+    });
+    return () => {
+      cancelled = true;
+      clearTimeout(safety);
+    };
   }, [pathname, syncCRM, syncProjects, syncDesigner, syncPurchase, syncStore, syncProduction, syncMaintenance, syncHR, syncAccounting, syncIntegration]);
 
   // Cross-Department Automatic Synchronization:
@@ -5352,6 +5382,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
         // Wipe old device-specific caches and trigger immediate fresh sync from shared backend
         invalidateApiCache();
+        loadedModulesRef.current.clear();
+        setBootstrapSynced(false);
         syncBootstrap(true).catch(() => {});
         return { success: true };
       }
@@ -5389,6 +5421,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         invalidateApiCache();
       } catch (_) {}
     }
+    loadedModulesRef.current.clear();
     setCurrentUser(emptyUnauthenticatedUser);
     setIsAuthenticated(false);
   };
@@ -15012,6 +15045,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         availableEmployees: deduplicateEmployees(employees || []),
         isAuthenticated,
         isInitialLoading,
+        isRouteDataLoading: routeModuleLoading || (isAuthenticated && !bootstrapSynced),
         isAuthReady,
         login,
         loginWithBackend,

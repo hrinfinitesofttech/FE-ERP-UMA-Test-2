@@ -816,7 +816,7 @@ function QuotationFormContent() {
                         className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
                       >
                         <Plus className="w-3.5 h-3.5" />
-                        <span>+ Add Machine</span>
+                        <span>Add Machine</span>
                       </button>
                     </div>
 
@@ -854,7 +854,7 @@ function QuotationFormContent() {
                         className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-[color:var(--crm-text-primary)] bg-white hover:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg transition shadow-2xs cursor-pointer active:scale-95"
                       >
                         <Plus className="w-3 h-3" />
-                        <span>+ Add Line</span>
+                        <span>Add Line</span>
                       </button>
                     </div>
 
@@ -1007,7 +1007,7 @@ function QuotationFormContent() {
                 className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>+ Add New</span>
+                <span>Add New</span>
               </button>
             </div>
 

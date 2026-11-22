@@ -541,7 +541,7 @@ function DispatchPageContent() {
             className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Generate Delivery Challan</span>
+            <span>Generate Delivery Challan</span>
           </button>
           <Link
             href="/production/completion"
@@ -1114,7 +1114,7 @@ function DispatchPageContent() {
                     className="text-xs text-amber-700 hover:underline font-bold flex items-center gap-1 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>+ Add Line Item</span>
+                    <span>Add Line Item</span>
                   </button>
                 </div>
 

@@ -998,7 +998,7 @@ function MaterialIssueContent() {
                     className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 text-xs font-bold transition shadow-sm cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    + Add Another Material Item
+                    Add Another Material Item
                   </button>
 
                   <div className="flex items-center gap-4 text-xs font-medium text-[color:var(--crm-text-secondary)]">

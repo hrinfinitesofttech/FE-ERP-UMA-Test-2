@@ -240,7 +240,7 @@ function MRPContent() {
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-white text-xs font-bold transition shadow-xs cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>+ New Issue Slip</span>
+              <span>New Issue Slip</span>
             </button>
           )}
         </div>

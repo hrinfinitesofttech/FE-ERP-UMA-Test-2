@@ -309,7 +309,7 @@ export default function ServiceRequestsPage() {
             className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Create First Service Request Form</span>
+            <span>Create First Service Request Form</span>
           </button>
         </div>
       ) : (

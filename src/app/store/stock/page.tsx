@@ -19,6 +19,8 @@ import { formatCurrency } from '../../../lib/utils';
 
 interface StockRow {
   id: string;
+  /** Item master id (the stock row id is the StockBalance id, not the item id) */
+  itemRefId: string;
   itemCode: string;
   itemName: string;
   category: string;
@@ -57,6 +59,7 @@ export default function StockMatrixPage() {
 
         return {
           id: String(s.id || s.itemId || s.itemCode || idx + 1),
+          itemRefId: String(itemMaster?.id || s.itemId || ''),
           itemCode: s.itemCode || itemMaster?.itemCode || `ITEM-${idx + 1}`,
           itemName: s.itemName || itemMaster?.itemName || 'Material Item',
           category: s.category || itemMaster?.category || 'Raw Material',
@@ -89,6 +92,7 @@ export default function StockMatrixPage() {
 
       return {
         id: String(it.id || idx + 1),
+        itemRefId: String(it.id || ''),
         itemCode: it.itemCode || `ITEM-${idx + 1}`,
         itemName: it.itemName || 'Material Item',
         category: it.category || 'Raw Material',
@@ -114,7 +118,7 @@ export default function StockMatrixPage() {
         isCodeLink: true,
         cell: (row) => (
           <Link
-            href={`/store/items/${row.id}`}
+            href={row.itemRefId ? `/store/items/${encodeURIComponent(row.itemRefId)}/edit` : '/store/items'}
             className="font-mono font-bold text-xs text-[#1F3FB0] hover:underline"
           >
             {row.itemCode}
@@ -221,7 +225,7 @@ export default function StockMatrixPage() {
         columns={columns}
         isLoading={isInitialLoading}
         searchPlaceholder="Search inventory by Item Code, Description, Category, BIN..."
-        addNewHref="/store/items/new"
+        addNewHref="/store/items/add"
         addNewLabel="Add Item"
         extraHeaderActions={
           <div className="flex items-center gap-2">

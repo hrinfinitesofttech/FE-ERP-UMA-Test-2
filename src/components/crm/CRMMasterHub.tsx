@@ -513,7 +513,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
             className="px-3 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold text-xs transition flex items-center gap-1.5 shadow-2xs"
           >
             <UserPlus className="w-3.5 h-3.5" />
-            <span>+ New Lead</span>
+            <span>New Lead</span>
           </Link>
           <Link
             href="/crm/quotations/new"

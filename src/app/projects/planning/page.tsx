@@ -777,7 +777,7 @@ export default function ProjectPlanningPage() {
                   className="px-3.5 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold rounded-xl text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>+ Add Task</span>
+                  <span>Add Task</span>
                 </button>
               </div>
             </div>

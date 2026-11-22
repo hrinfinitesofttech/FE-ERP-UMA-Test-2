@@ -23,7 +23,7 @@ export default function InventoryValuationPage() {
 
   return (
     <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)]  text-[color:var(--crm-text-primary)]">
-      <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)]">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-crm-brand-600/20 rounded-xl text-indigo-700">
             <Box className="w-6 h-6" />
@@ -45,7 +45,7 @@ export default function InventoryValuationPage() {
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)]">
-        <div className="relative w-80">
+        <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-secondary)]" />
           <input
             type="text"
@@ -72,8 +72,8 @@ export default function InventoryValuationPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden">
-        <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)]">
+      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-x-auto">
+        <table className="w-full min-w-[900px] text-left text-xs text-[color:var(--crm-text-secondary)]">
           <thead className="bg-[#F4F6FA]/80 text-[color:var(--crm-text-secondary)] uppercase font-semibold text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
             <tr>
               <th className="py-3.5 px-4">Item Code</th>

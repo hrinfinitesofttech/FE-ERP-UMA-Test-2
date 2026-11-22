@@ -85,6 +85,12 @@ import {
   Fingerprint,
   Timer,
   CalendarDays,
+  ScrollText,
+  FilePlus2,
+  Percent,
+  Gauge,
+  HandCoins,
+  Building2,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -699,6 +705,12 @@ export function Sidebar() {
                 {!sidebarCollapsed && <span>Purchase Returns</span>}
               </Link>
 )}
+              {pageVisible('/purchase/payment-status') && (
+<Link href="/purchase/payment-status" className={subNavItemClass('/purchase/payment-status')}>
+                <Wallet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Supplier Payment Status</span>}
+              </Link>
+)}
 
             </div>
           )}
@@ -1112,6 +1124,73 @@ export function Sidebar() {
 <Link href="/accounting/depreciation" className={subNavItemClass('/accounting/depreciation')}>
                 <History className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Depreciation Schedule</span>}
+              </Link>
+)}
+
+              {pageVisible('/accounting/books') && (
+<Link href="/accounting/books" className={subNavItemClass('/accounting/books')}>
+                <Landmark className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Books of Accounts (Hub)</span>}
+              </Link>
+)}
+              {pageVisible('/accounting/ledgers') && (
+<Link href="/accounting/ledgers" className={subNavItemClass('/accounting/ledgers')}>
+                <BookOpen className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Ledger Master</span>}
+              </Link>
+)}
+              {pageVisible('/accounting/vouchers') && (
+<Link href="/accounting/vouchers" className={subNavItemClass('/accounting/vouchers')}>
+                <FilePlus2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Voucher Entry</span>}
+              </Link>
+)}
+              {pageVisible('/accounting/day-book') && (
+<Link href="/accounting/day-book" className={subNavItemClass('/accounting/day-book')}>
+                <ScrollText className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Day Book / Ledger</span>}
+              </Link>
+)}
+              {pageVisible('/accounting/payment-requests') && (
+<Link href="/accounting/payment-requests" className={subNavItemClass('/accounting/payment-requests')}>
+                <HandCoins className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Payment Requests</span>}
+              </Link>
+)}
+              {pageVisible('/accounting/reports/trial-balance') && (
+<Link href="/accounting/reports/trial-balance" className={subNavItemClass('/accounting/reports/trial-balance')}>
+                <Scale className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Trial Balance</span>}
+              </Link>
+)}
+              {pageVisible('/accounting/reports/profit-loss') && (
+<Link href="/accounting/reports/profit-loss" className={subNavItemClass('/accounting/reports/profit-loss')}>
+                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Profit & Loss A/c</span>}
+              </Link>
+)}
+              {pageVisible('/accounting/reports/balance-sheet') && (
+<Link href="/accounting/reports/balance-sheet" className={subNavItemClass('/accounting/reports/balance-sheet')}>
+                <Building2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Balance Sheet</span>}
+              </Link>
+)}
+              {pageVisible('/accounting/reports/ratio-analysis') && (
+<Link href="/accounting/reports/ratio-analysis" className={subNavItemClass('/accounting/reports/ratio-analysis')}>
+                <Gauge className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Ratio Analysis</span>}
+              </Link>
+)}
+              {pageVisible('/accounting/depreciation-chart') && (
+<Link href="/accounting/depreciation-chart" className={subNavItemClass('/accounting/depreciation-chart')}>
+                <Percent className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Depreciation Chart</span>}
+              </Link>
+)}
+              {pageVisible('/accounting/stock-summary') && (
+<Link href="/accounting/stock-summary" className={subNavItemClass('/accounting/stock-summary')}>
+                <Boxes className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Stock Summary</span>}
               </Link>
 )}
 

@@ -1210,7 +1210,7 @@ export default function WorkerDailyRoutinePage() {
                               className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
                             >
                               <Plus className="w-4 h-4" />
-                              <span>+ Add Your First Worker</span>
+                              <span>Add Your First Worker</span>
                             </button>
                           ) : (
                             <button

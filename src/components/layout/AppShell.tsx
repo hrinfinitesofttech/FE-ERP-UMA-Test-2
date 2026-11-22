@@ -7,6 +7,7 @@ import { Topbar } from './Topbar';
 import { JobTraceabilityModal } from '../traceability/JobTraceabilityModal';
 import { GlobalSearchModal } from '../search/GlobalSearchModal';
 import { PageTransition } from './PageTransition';
+import { PageLoader } from './PageLoader';
 import { useERP } from '../../context/ERPContext';
 import { canViewPageHref, getPageGrants, isTrueSuperAdmin, isUniversalPath } from '@/lib/pageRegistry';
 import { ShieldAlert, ArrowLeft, Home } from 'lucide-react';
@@ -168,7 +169,7 @@ function getPrimaryHref(currentUser: any): string {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, isAuthenticated, isAuthReady, sidebarMobileOpen, setSidebarMobileOpen } = useERP();
+  const { currentUser, isAuthenticated, isAuthReady, sidebarMobileOpen, setSidebarMobileOpen, isRouteDataLoading } = useERP();
   const [isMounted, setIsMounted] = useState(false);
 
   // Publish the page content area's box as CSS variables so that form / detail "modals" can be
@@ -270,9 +271,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <main ref={mainRef} className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 scrollbar-thin bg-[var(--crm-bg-app,#FCFAF7)]">
             {allowed ? (
-              <PageTransition>
-                {children}
-              </PageTransition>
+              <>
+                {isRouteDataLoading && <PageLoader />}
+                {/* Page is mounted while loading (so its own fetches start in parallel) but stays hidden until data is in */}
+                <div style={isRouteDataLoading ? { visibility: 'hidden', height: 0, overflow: 'hidden' } : undefined}>
+                  <PageTransition>
+                    {children}
+                  </PageTransition>
+                </div>
+              </>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[500px]">
                 <div className="w-16 h-16 rounded-3xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mb-4 shadow-sm">

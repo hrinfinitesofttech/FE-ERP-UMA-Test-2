@@ -851,7 +851,7 @@ function VisitFormContent() {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>+ Add Next Follow-up</span>
+                      <span>Add Next Follow-up</span>
                     </button>
                   )}
                 </div>

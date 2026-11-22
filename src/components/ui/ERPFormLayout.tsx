@@ -266,7 +266,7 @@ export function ERPSubTableCard({
             className="text-xs font-bold text-[color:var(--crm-brand-600)] hover:text-[#6D28D9] flex items-center gap-1 cursor-pointer transition"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>{addLabel}</span>
+            <span>{String(addLabel).replace(/^\s*\+\s*/, '')}</span>
           </button>
         )}
       </div>
