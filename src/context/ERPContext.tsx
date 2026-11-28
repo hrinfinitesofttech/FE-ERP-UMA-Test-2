@@ -24,6 +24,7 @@ import {
   MOCK_EMPLOYEE_360_LIST,
 } from '../data/mockIntegrationData';
 import { api, invalidateApiCache } from '../lib/apiClient';
+import { computeQuotationTotals, itemAmount } from '../lib/quotationMath';
 import {
   CompanySetting,
   NumberingSetting,
@@ -44,6 +45,7 @@ import {
   ProjectJobMaster,
   Activity,
   QuotationRevision,
+  QuotationItem,
   ProjectTask,
   MasterTask,
   PlannedTaskItem,
@@ -460,8 +462,6 @@ interface ERPContextType {
       canExportData?: boolean;
     }
   ) => Promise<{ success: boolean; message?: string; error?: string }>;
-  checkInAttendance: (data?: any) => Promise<{ success: boolean; message?: string; record?: any }>;
-  checkOutAttendance: (data?: any) => Promise<{ success: boolean; message?: string; record?: any }>;
 
   // Master Settings
   company: CompanySetting;
@@ -538,6 +538,8 @@ interface ERPContextType {
   addQuotation: (quoData: Omit<Quotation, 'id' | 'quotationNumber'>) => Quotation;
   addQuotationRevision: (quotationId: string, revision: QuotationRevision) => void;
   updateQuotationStatus: (quotationId: string, revisionNumber: string, status: QuotationRevision['status']) => void;
+  /** Edit quantity / rate / discount / GST of a draft revision. Rejects (and restores the screen) when the server refuses. */
+  updateQuotationRevision: (quotationId: string, revisionNumber: string, items: QuotationItem[]) => Promise<void>;
 
   customerPOs: CustomerPO[];
   addCustomerPO: (poData: Omit<CustomerPO, 'id'>) => CustomerPO;
@@ -5708,47 +5710,6 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const checkInAttendance = async (data?: any) => {
-    const payload = {
-      employeeId: data?.employeeId || currentUser?.id,
-      employeeName: data?.employeeName || currentUser?.name || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim(),
-      department: data?.department || currentUser?.departmentName || 'General',
-      shiftName: data?.shiftName || 'General Day Shift (09:00 - 18:00)',
-    };
-    try {
-      const res = await api.hr.attendance.checkIn(payload);
-      if (res?.record) {
-        setAttendanceRecords((prev) => {
-          const filtered = prev.filter((r) => r.id !== res.record.id && !(r.employeeId === res.record.employeeId && r.date === res.record.date));
-          return [res.record, ...filtered];
-        });
-      }
-      return { success: true, message: res?.message || 'Checked in successfully', record: res?.record };
-    } catch (err: any) {
-      console.warn('Check in API error:', err);
-      return { success: false, message: err?.message || 'Check-in failed' };
-    }
-  };
-
-  const checkOutAttendance = async (data?: any) => {
-    const payload = {
-      employeeId: data?.employeeId || currentUser?.id,
-    };
-    try {
-      const res = await api.hr.attendance.checkOut(payload);
-      if (res?.record) {
-        setAttendanceRecords((prev) => {
-          const filtered = prev.filter((r) => r.id !== res.record.id && !(r.employeeId === res.record.employeeId && r.date === res.record.date));
-          return [res.record, ...filtered];
-        });
-      }
-      return { success: true, message: res?.message || 'Checked out successfully', record: res?.record };
-    } catch (err: any) {
-      console.warn('Check out API error:', err);
-      return { success: false, message: err?.message || 'Check-out failed' };
-    }
-  };
-
   // Company & Numbering Updates
   const updateCompany = (data: Partial<CompanySetting>) => {
     setCompany((prev) => {
@@ -6967,6 +6928,48 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
     logAction('UPDATE', 'CRM', 'Quotation Revision', quotationId, `Created revision ${revision.revisionNumber}`);
     api.crm.quotations.addRevision(quotationId, revision).catch((err) => console.warn('Failed to sync quotation revision:', err));
+  };
+
+  const updateQuotationRevision = async (quotationId: string, revisionNumber: string, items: QuotationItem[]) => {
+    const before = quotations;
+    const nextItems = items.map((it) => ({ ...it, amount: itemAmount(it) }));
+    const totals = computeQuotationTotals(nextItems);
+    const apply = (list: Quotation[]) =>
+      list.map((q) => {
+        if (q.id !== quotationId) return q;
+        return {
+          ...q,
+          revisions: q.revisions.map((r) => (r.revisionNumber === revisionNumber ? { ...r, items: nextItems, ...totals } : r)),
+          latestSummary: q.currentRevision === revisionNumber ? { ...q.latestSummary, grandTotal: totals.grandTotal } : q.latestSummary,
+        };
+      });
+    const persist = (list: Quotation[]) => {
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(list)); } catch (_) {}
+      }
+    };
+
+    const updated = apply(before);
+    setQuotations(updated);
+    persist(updated);
+    try {
+      try {
+        await api.crm.quotations.updateRevision(quotationId, { revisionNumber, items: nextItems });
+      } catch (err: any) {
+        // Older server without the dedicated endpoint: save the revisions list instead
+        if (err?.status === 404 || err?.status === 405) {
+          const rev = updated.find((q) => q.id === quotationId)?.revisions;
+          await api.crm.quotations.update(quotationId, { revisions: rev });
+        } else {
+          throw err;
+        }
+      }
+      logAction('UPDATE', 'CRM', 'Quotation Revision', quotationId, `Edited quantities / prices of ${revisionNumber} (total ₹${totals.grandTotal})`);
+    } catch (err) {
+      setQuotations(before);
+      persist(before);
+      throw err;
+    }
   };
 
   const updateQuotationStatus = (quotationId: string, revisionNumber: string, status: QuotationRevision['status']) => {
@@ -15064,8 +15067,6 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         can,
         hasDepartmentAccess,
         updateEmployeePermissions,
-        checkInAttendance,
-        checkOutAttendance,
         company,
         updateCompany,
         numbering,
@@ -15125,6 +15126,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         addQuotation,
         addQuotationRevision,
         updateQuotationStatus,
+        updateQuotationRevision,
         customerPOs: deduplicateCustomerPOs(customerPOs),
         addCustomerPO,
         updateCustomerPO,

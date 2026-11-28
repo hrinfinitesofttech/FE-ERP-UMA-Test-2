@@ -73,7 +73,7 @@ export default function MyHrmsDashboardPage() {
           <div><div className={`font-black text-base ${num(today.lateMinutes) > 0 ? 'text-red-600' : ''}`}>{num(today.lateMinutes)} min</div><span className="text-[color:var(--crm-text-secondary)]">Late</span></div>
         </div>
         <Link href="/my/attendance" className="px-3.5 py-2 rounded-lg bg-crm-brand-700 text-white text-xs font-semibold hover:bg-crm-brand-800">
-          {today.canCheckIn ? 'Punch in' : today.canCheckOut ? 'Punch out' : 'View attendance'}
+          View attendance
         </Link>
       </div>
 

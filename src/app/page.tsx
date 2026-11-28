@@ -83,8 +83,6 @@ export default function DashboardPage() {
     leaveRequests = [],
     projectTasks = [],
     updateProjectTask,
-    checkInAttendance,
-    checkOutAttendance,
     jobs = [],
     openJobModal,
     customerPOs = [],
@@ -197,54 +195,6 @@ export default function DashboardPage() {
         a.date === todayDateStr
     );
   }, [dashboardData, attendanceRecords, currentUser, todayDateStr]);
-
-  // Attendance Punch State
-  const [punchLoading, setPunchLoading] = useState(false);
-  const [punchFeedback, setPunchFeedback] = useState<{ msg: string; isError?: boolean } | null>(null);
-
-  const handlePunchIn = async () => {
-    setPunchLoading(true);
-    setPunchFeedback(null);
-    try {
-      const res = await api.hr.attendance.checkIn();
-      setPunchFeedback({ msg: res.message || 'Punched In Successfully!' });
-      await fetchDashboard();
-      if (checkInAttendance) {
-        checkInAttendance({
-          employeeId: currentUser?.id,
-          employeeName: currentUser?.name,
-          department: currentUser?.departmentName || currentUser?.department,
-          shiftName: 'General Day Shift (09:00 - 18:00)',
-        }).catch?.(() => {});
-      }
-    } catch (err: any) {
-      const errMsg = err?.data?.error || err?.message || 'Failed to record punch in. Please try again.';
-      setPunchFeedback({ msg: errMsg, isError: true });
-    } finally {
-      setPunchLoading(false);
-      setTimeout(() => setPunchFeedback(null), 5000);
-    }
-  };
-
-  const handlePunchOut = async () => {
-    setPunchLoading(true);
-    setPunchFeedback(null);
-    try {
-      const res = await api.hr.attendance.checkOut();
-      const hrs = res.record?.total_hours !== undefined ? ` (${res.record.total_hours} hrs logged)` : '';
-      setPunchFeedback({ msg: (res.message || 'Punched Out Successfully!') + hrs });
-      await fetchDashboard();
-      if (checkOutAttendance) {
-        checkOutAttendance({ employeeId: currentUser?.id }).catch?.(() => {});
-      }
-    } catch (err: any) {
-      const errMsg = err?.data?.error || err?.message || 'Failed to record punch out. Please try again.';
-      setPunchFeedback({ msg: errMsg, isError: true });
-    } finally {
-      setPunchLoading(false);
-      setTimeout(() => setPunchFeedback(null), 5000);
-    }
-  };
 
   // Filter My Tasks (Prefer Live API Data)
   const myAssignedTasks = useMemo(() => {
@@ -1307,30 +1257,9 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Punch Feedback Banner */}
-          {punchFeedback && (
-            <div
-              className={cn(
-                'p-4 rounded-2xl border text-xs font-bold flex items-center justify-between animate-in fade-in slide-in-from-top-1 shadow-xs',
-                punchFeedback.isError
-                  ? 'bg-rose-50 border-rose-200 text-rose-800'
-                  : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              )}
-            >
-              <span>{punchFeedback.msg}</span>
-              <button
-                type="button"
-                onClick={() => setPunchFeedback(null)}
-                className="p-0.5 opacity-70 hover:opacity-100 transition"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-
           {/* Interactive Attendance & Leave Center */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Widget 1: Live Web Punch */}
+            {/* Widget 1: Today's attendance (recorded by the biometric machine, read-only) */}
             <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-surface-subtle)]">
@@ -1339,8 +1268,8 @@ export default function DashboardPage() {
                       <Clock className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-[color:var(--crm-text-primary)]">Daily Web Punch</h3>
-                      <p className="text-[10px] text-[color:var(--crm-text-tertiary)]">Shift: 09:00 AM - 06:00 PM</p>
+                      <h3 className="text-xs font-bold text-[color:var(--crm-text-primary)]">Today&apos;s Attendance</h3>
+                      <p className="text-[10px] text-[color:var(--crm-text-tertiary)]">Shift: 09:00 AM - 06:00 PM · from biometric machine</p>
                     </div>
                   </div>
                   <span
@@ -1357,7 +1286,7 @@ export default function DashboardPage() {
                       ? 'Shift Completed'
                       : todayAttendance?.checkIn
                       ? 'Checked In'
-                      : 'Not Punched Today'}
+                      : 'No punch yet'}
                   </span>
                 </div>
 
@@ -1378,30 +1307,6 @@ export default function DashboardPage() {
               </div>
 
               <div className="space-y-2 pt-2">
-                {!todayAttendance?.checkIn ? (
-                  <button
-                    disabled={punchLoading}
-                    onClick={handlePunchIn}
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>{punchLoading ? 'Recording...' : 'Punch In (Start Shift)'}</span>
-                  </button>
-                ) : !todayAttendance?.checkOut ? (
-                  <button
-                    disabled={punchLoading}
-                    onClick={handlePunchOut}
-                    className="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <Square className="w-3.5 h-3.5 fill-current" />
-                    <span>{punchLoading ? 'Recording...' : 'Punch Out (End Shift)'}</span>
-                  </button>
-                ) : (
-                  <div className="text-center py-2.5 bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 flex items-center justify-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>You have completed both punches for today.</span>
-                  </div>
-                )}
                 <div className="text-right">
                   <Link
                     href="/hr/attendance"

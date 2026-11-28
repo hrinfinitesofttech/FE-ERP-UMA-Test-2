@@ -30,7 +30,9 @@ import {
   FileDown,
   FileText,
 } from 'lucide-react';
-import { QuotationRevision } from '../../../../types/crm';
+import { QuotationItem, QuotationRevision } from '../../../../types/crm';
+import { Pencil, Save as SaveIcon, X as XIcon } from 'lucide-react';
+import { computeQuotationTotals, isRevisionEditable, itemAmount, rateFromTotal, validateQuotationItems } from '../../../../lib/quotationMath';
 
 // Helper to cleanly parse specification & description points into separate lines
 const parseDescriptionPoints = (item: any): string[] => {
@@ -72,7 +74,7 @@ const DEFAULT_TERMS = [
 export default function QuotationDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { quotations, leads, enquiries, customers, addQuotationRevision, updateQuotationStatus, currentUser, addCustomerPO, addFollowUp } = useERP();
+  const { quotations, leads, enquiries, customers, addQuotationRevision, updateQuotationStatus, updateQuotationRevision, currentUser, addCustomerPO, addFollowUp } = useERP();
 
   const quotationId = String(params.id);
   const quotation = quotations.find((q) => q.id === quotationId);
@@ -139,6 +141,9 @@ export default function QuotationDetailPage() {
 
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draftItems, setDraftItems] = useState<QuotationItem[]>([]);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   if (!quotation) {
     return (
@@ -152,6 +157,57 @@ export default function QuotationDetailPage() {
   }
 
   const currentRev = quotation.revisions.find((r) => r.revisionNumber === selectedRevNum) || quotation.revisions[quotation.revisions.length - 1];
+
+  // ---- edit quantity / unit rate / discount / GST / total of a draft revision ----
+  const canEditRev = isRevisionEditable(currentRev?.status);
+  const draftTotals = computeQuotationTotals(draftItems);
+
+  const startEdit = () => {
+    setDraftItems(currentRev.items.map((it) => ({ ...it })));
+    setEditing(true);
+  };
+  const cancelEdit = () => setEditing(false);
+
+  const changeDraft = (idx: number, field: 'quantity' | 'rate' | 'discountPercent' | 'taxPercent' | 'amount', value: string) => {
+    setDraftItems((prev) =>
+      prev.map((it, i) => {
+        if (i !== idx) return it;
+        const next: any = { ...it, [field]: value };
+        if (field === 'amount') {
+          next.rate = rateFromTotal(next, Number(value)); // typing the total works out the unit rate
+        } else {
+          next.amount = itemAmount(next); // everything else recalculates the total
+        }
+        return next;
+      })
+    );
+  };
+
+  const handleSaveEdit = async () => {
+    const clean: QuotationItem[] = draftItems.map((it) => ({
+      ...it,
+      quantity: Number(it.quantity) || 0,
+      rate: Number(it.rate) || 0,
+      discountPercent: Number(it.discountPercent) || 0,
+      taxPercent: Number(it.taxPercent) || 0,
+      amount: Number(it.amount) || 0,
+    }));
+    const problem = validateQuotationItems(clean);
+    if (problem) {
+      showFeedback('error', problem, 8000);
+      return;
+    }
+    setSavingEdit(true);
+    try {
+      await updateQuotationRevision(quotation.id, currentRev.revisionNumber, clean);
+      setEditing(false);
+      showFeedback('success', `${currentRev.revisionNumber} updated. New grand total ${formatCurrency(computeQuotationTotals(clean).grandTotal)}.`, 6000);
+    } catch (err: any) {
+      showFeedback('error', err?.data?.error || err?.message || 'Could not save the changes.', 10000);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const handleApprove = () => {
     updateQuotationStatus(quotation.id, currentRev.revisionNumber, 'approved');
@@ -272,7 +328,8 @@ export default function QuotationDetailPage() {
 
     addQuotationRevision(quotation.id, newRev);
     setSelectedRevNum(nextRevNum);
-    showFeedback('info', `Created new editable revision: ${nextRevNum}`, 4000);
+    setEditing(false);
+    showFeedback('info', `Created new editable revision: ${nextRevNum}. Use Edit Qty / Rate / GST to change quantities and prices.`, 7000);
   };
 
   return (
@@ -363,7 +420,7 @@ export default function QuotationDetailPage() {
               {quotation.revisions.map((rev) => (
                 <button
                   key={rev.revisionNumber}
-                  onClick={() => setSelectedRevNum(rev.revisionNumber)}
+                  onClick={() => { setEditing(false); setSelectedRevNum(rev.revisionNumber); }}
                   className={`px-2.5 py-1 rounded-lg font-mono font-bold text-xs transition ${
                     selectedRevNum === rev.revisionNumber
                       ? 'bg-[color:var(--crm-text-primary)] text-white shadow-xs'
@@ -381,6 +438,36 @@ export default function QuotationDetailPage() {
               <Plus className="w-3 h-3" />
               <span>Create Next Rev</span>
             </button>
+            {!editing && canEditRev && (
+              <button
+                onClick={startEdit}
+                className="px-2.5 py-1 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-lg font-bold text-xs flex items-center gap-1 border border-amber-200"
+                title="Change quantity, unit rate, GST and total of this revision"
+              >
+                <Pencil className="w-3 h-3" />
+                <span>Edit Qty / Rate / GST</span>
+              </button>
+            )}
+            {editing && (
+              <>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={savingEdit}
+                  className="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 rounded-lg font-bold text-xs flex items-center gap-1"
+                >
+                  {savingEdit ? <Loader2 className="w-3 h-3 animate-spin" /> : <SaveIcon className="w-3 h-3" />}
+                  <span>{savingEdit ? 'Saving...' : 'Save Changes'}</span>
+                </button>
+                <button
+                  onClick={cancelEdit}
+                  disabled={savingEdit}
+                  className="px-2.5 py-1 bg-white text-slate-700 hover:bg-slate-50 rounded-lg font-bold text-xs flex items-center gap-1 border border-slate-300"
+                >
+                  <XIcon className="w-3 h-3" />
+                  <span>Cancel</span>
+                </button>
+              </>
+            )}
           </div>
 
           {/* Direct Action Buttons (Always directly visible) */}
@@ -526,13 +613,14 @@ export default function QuotationDetailPage() {
                 <th className="p-2 border">Equipment Description & Specifications</th>
                 <th className="p-2 border w-24 text-center">Qty</th>
                 <th className="p-2 border w-28 text-right">Unit Rate (₹)</th>
-                <th className="p-2 border w-20 text-right">GST %</th>
+                {editing && <th className="p-2 border w-20 text-right">Disc %</th>}
+                <th className="p-2 border w-24 text-right">GST %</th>
                 <th className="p-2 border w-32 text-right">Total Amount (₹)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-[color:var(--crm-border-default)] text-[11px]">
-              {currentRev.items.map((item, idx) => (
-                <tr key={idx} className="align-top">
+              {(editing ? draftItems : currentRev.items).map((item, idx) => (
+                <tr key={idx} className={`align-top ${editing ? 'bg-amber-50/40' : ''}`}>
                   <td className="p-2.5 border text-center font-mono">{idx + 1}</td>
                   <td className="p-2.5 border break-words">
                     <strong className="block text-slate-900 dark:text-[color:var(--crm-text-primary)] text-xs font-bold">{item.productName}</strong>
@@ -568,28 +656,55 @@ export default function QuotationDetailPage() {
                       );
                     })()}
                   </td>
-                  <td className="p-2.5 border text-center font-mono font-bold whitespace-nowrap">{item.quantity} {item.unit}</td>
-                  <td className="p-2.5 border text-right font-mono whitespace-nowrap">{formatCurrency(item.rate)}</td>
-                  <td className="p-2.5 border text-right font-mono whitespace-nowrap">{item.taxPercent}%</td>
-                  <td className="p-2.5 border text-right font-mono font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)] whitespace-nowrap">
-                    {formatCurrency(item.amount)}
-                  </td>
+                  {editing ? (
+                    <>
+                      <td className="p-1.5 border">
+                        <input type="number" min={0} step="any" value={item.quantity as any} onChange={(e) => changeDraft(idx, 'quantity', e.target.value)} className="w-full px-1.5 py-1 border border-amber-300 rounded bg-white text-right font-mono font-bold text-[11px] focus:outline-none focus:ring-1 focus:ring-amber-500" aria-label="Quantity" />
+                        <span className="block text-center text-[10px] text-slate-500 mt-0.5">{item.unit}</span>
+                      </td>
+                      <td className="p-1.5 border">
+                        <input type="number" min={0} step="any" value={item.rate as any} onChange={(e) => changeDraft(idx, 'rate', e.target.value)} className="w-full px-1.5 py-1 border border-amber-300 rounded bg-white text-right font-mono font-bold text-[11px] focus:outline-none focus:ring-1 focus:ring-amber-500" aria-label="Unit rate" />
+                      </td>
+                      <td className="p-1.5 border">
+                        <input type="number" min={0} max={100} step="any" value={item.discountPercent as any} onChange={(e) => changeDraft(idx, 'discountPercent', e.target.value)} className="w-full px-1.5 py-1 border border-amber-300 rounded bg-white text-right font-mono font-bold text-[11px] focus:outline-none focus:ring-1 focus:ring-amber-500" aria-label="Discount percent" />
+                      </td>
+                      <td className="p-1.5 border">
+                        <select value={String(item.taxPercent)} onChange={(e) => changeDraft(idx, 'taxPercent', e.target.value)} className="w-full px-1.5 py-1 border border-amber-300 rounded bg-white text-right font-mono font-bold text-[11px] focus:outline-none focus:ring-1 focus:ring-amber-500" aria-label="GST percent">
+                          {Array.from(new Set([0, 5, 12, 18, 28, Number(item.taxPercent)])).sort((a, b) => a - b).map((g) => (
+                            <option key={g} value={String(g)}>{g}%</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="p-1.5 border">
+                        <input type="number" min={0} step="any" value={item.amount as any} onChange={(e) => changeDraft(idx, 'amount', e.target.value)} className="w-full px-1.5 py-1 border border-amber-300 rounded bg-white text-right font-mono font-bold text-[11px] focus:outline-none focus:ring-1 focus:ring-amber-500" aria-label="Total amount" />
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="p-2.5 border text-center font-mono font-bold whitespace-nowrap">{item.quantity} {item.unit}</td>
+                      <td className="p-2.5 border text-right font-mono whitespace-nowrap">{formatCurrency(item.rate)}</td>
+                      <td className="p-2.5 border text-right font-mono whitespace-nowrap">{item.taxPercent}%</td>
+                      <td className="p-2.5 border text-right font-mono font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)] whitespace-nowrap">
+                        {formatCurrency(item.amount)}
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>
             <tfoot className="bg-slate-50 dark:bg-[#F4F6FA]/60 font-bold text-[11px]">
               <tr>
-                <td colSpan={5} className="p-2 border text-right">Taxable Subtotal:</td>
-                <td className="p-2 border text-right font-mono whitespace-nowrap">{formatCurrency(currentRev.subTotal)}</td>
+                <td colSpan={editing ? 6 : 5} className="p-2 border text-right">Taxable Subtotal:</td>
+                <td className="p-2 border text-right font-mono whitespace-nowrap">{formatCurrency(editing ? draftTotals.subTotal : currentRev.subTotal)}</td>
               </tr>
               <tr>
-                <td colSpan={5} className="p-2 border text-right">Applicable GST Taxes:</td>
-                <td className="p-2 border text-right font-mono whitespace-nowrap">{formatCurrency(currentRev.taxAmount)}</td>
+                <td colSpan={editing ? 6 : 5} className="p-2 border text-right">Applicable GST Taxes:</td>
+                <td className="p-2 border text-right font-mono whitespace-nowrap">{formatCurrency(editing ? draftTotals.taxAmount : currentRev.taxAmount)}</td>
               </tr>
               <tr className="bg-slate-100 dark:bg-[color:var(--crm-bg-app)] text-xs">
-                <td colSpan={5} className="p-2 border text-right font-black">Grand Total (INR):</td>
+                <td colSpan={editing ? 6 : 5} className="p-2 border text-right font-black">Grand Total (INR):</td>
                 <td className="p-2 border text-right font-mono font-black text-emerald-600 whitespace-nowrap">
-                  {formatCurrency(currentRev.grandTotal)}
+                  {formatCurrency(editing ? draftTotals.grandTotal : currentRev.grandTotal)}
                 </td>
               </tr>
             </tfoot>

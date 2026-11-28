@@ -1072,6 +1072,8 @@ export const api = {
       create: (data: any) => request<any>('/quotations/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/quotations/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/quotations/${id}/`, { method: 'DELETE' }),
+      updateRevision: (id: string, data: { revisionNumber: string; items: any[] }) =>
+        request<any>(`/quotations/${id}/update-revision/`, { method: 'POST', body: JSON.stringify(data) }),
       addRevision: (id: string, data: any) => request<any>(`/quotations/${id}/add-revision/`, { method: 'POST', body: JSON.stringify(data) }),
       updateStatus: (id: string, data: { revisionNumber?: string; status: string }) =>
         request<any>(`/quotations/${id}/update-status/`, { method: 'POST', body: JSON.stringify(data) }),
@@ -1838,10 +1840,6 @@ export const api = {
         }
         return request<any[]>(`/attendance-records/${query}`);
       },
-      checkIn: (data?: { employeeId?: string; employeeName?: string; department?: string; shiftName?: string }) =>
-        request<any>('/attendance-records/check-in/', { method: 'POST', body: JSON.stringify(data || {}) }),
-      checkOut: (data?: { employeeId?: string }) =>
-        request<any>('/attendance-records/check-out/', { method: 'POST', body: JSON.stringify(data || {}) }),
       monthlySummary: (params?: { employeeId?: string; monthYear?: string }) => {
         const q = new URLSearchParams();
         if (params?.employeeId) q.append('employee_id', params.employeeId);
