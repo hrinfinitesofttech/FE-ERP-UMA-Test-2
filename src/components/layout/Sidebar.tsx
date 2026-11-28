@@ -205,6 +205,7 @@ export function Sidebar() {
   const [crmOpen, setCrmOpen] = useState(false);
   const [projectOpen, setProjectOpen] = useState(false);
   const [designerOpen, setDesignerOpen] = useState(false);
+  const [nestingOpen, setNestingOpen] = useState(false);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const [storeOpen, setStoreOpen] = useState(false);
   const [productionOpen, setProductionOpen] = useState(false);
@@ -220,6 +221,7 @@ export function Sidebar() {
     if (pathname === '/crm' || pathname.startsWith('/crm/')) setCrmOpen(true);
     if (pathname === '/projects' || pathname.startsWith('/projects/')) setProjectOpen(true);
     if (pathname === '/designer' || pathname.startsWith('/designer/')) setDesignerOpen(true);
+    if (pathname === '/nesting' || pathname.startsWith('/nesting/')) setNestingOpen(true);
     if (pathname === '/purchase' || pathname.startsWith('/purchase/')) setPurchaseOpen(true);
     if (pathname === '/store' || pathname.startsWith('/store/')) setStoreOpen(true);
     if (pathname === '/production' || pathname.startsWith('/production/')) setProductionOpen(true);
@@ -592,6 +594,57 @@ export function Sidebar() {
 <Link href="/designer/bom" className={subNavItemClass('/designer/bom')}>
                 <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>BOM</span>}
+              </Link>
+)}
+            </div>
+          )}
+        </div>
+        )}
+
+        {/* MODULE: NESTING & PLATE CUTTING */}
+        {hasModule('nesting') && (
+        <div className="py-0.5">
+          {!sidebarCollapsed && (
+            <button
+              onClick={() => setNestingOpen(!nestingOpen)}
+              className={cn(
+                'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
+                nestingOpen
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
+              )}
+            >
+              <div className="flex items-center gap-2.5">
+                <Layers className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
+                <span>Nesting & Plate Cutting</span>
+              </div>
+              <ChevronDown
+                className={cn(
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
+                  nestingOpen ? 'rotate-0' : '-rotate-90'
+                )}
+              />
+            </button>
+          )}
+
+          {(nestingOpen || sidebarCollapsed) && (
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+              {pageVisible('/nesting') && (
+<Link href="/nesting" className={subNavItemClass('/nesting')}>
+                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Nesting Jobs</span>}
+              </Link>
+)}
+              {pageVisible('/nesting/production-review') && (
+<Link href="/nesting/production-review" className={subNavItemClass('/nesting/production-review')}>
+                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Production Review</span>}
+              </Link>
+)}
+              {pageVisible('/nesting/material-estimate') && (
+<Link href="/nesting/material-estimate" className={subNavItemClass('/nesting/material-estimate')}>
+                <Package className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Sheet & Material Estimate</span>}
               </Link>
 )}
             </div>

@@ -89,6 +89,7 @@ function isRouteAllowed(pathname: string, currentUser: any): boolean {
   if (pathname.startsWith('/crm')) requiredModule = 'crm';
   else if (pathname.startsWith('/projects')) requiredModule = 'projects';
   else if (pathname.startsWith('/designer') || pathname.startsWith('/design')) requiredModule = 'design';
+  else if (pathname.startsWith('/nesting')) requiredModule = 'nesting';
   else if (pathname.startsWith('/purchase')) requiredModule = 'purchase';
   else if (pathname.startsWith('/store')) requiredModule = 'store';
   else if (pathname.startsWith('/production')) requiredModule = 'production';

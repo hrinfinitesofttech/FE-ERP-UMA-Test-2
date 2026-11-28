@@ -74,6 +74,9 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
   const nowStr = new Date().toISOString().split('T')[0];
   const isPatchOrPut = method === 'PATCH' || method === 'PUT';
 
+  // Nesting module: payloads are already in the shape the API expects; do not inject fallback ids
+  if (ep.includes('/nesting/')) return d;
+
   // Master Tasks Normalization
   if (ep.includes('/master-tasks')) {
     if (d.taskCode && !d.task_code) d.task_code = d.taskCode;

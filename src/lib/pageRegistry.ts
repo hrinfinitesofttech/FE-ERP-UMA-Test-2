@@ -71,6 +71,15 @@ export const PAGE_REGISTRY: ModuleDef[] = [
     ],
   },
   {
+    id: 'nesting',
+    name: 'Nesting & Plate Cutting',
+    pages: [
+      { key: 'nesting.jobs', label: 'Nesting Jobs', href: '/nesting' },
+      { key: 'nesting.production-review', label: 'Production Review (Accept / Rework)', href: '/nesting/production-review' },
+      { key: 'nesting.material-estimate', label: 'Sheet & Material Estimate', href: '/nesting/material-estimate', readOnly: true },
+    ],
+  },
+  {
     id: 'purchase',
     name: 'Purchase & RFQ',
     pages: [

@@ -5,6 +5,7 @@ import { useERP } from '../../../context/ERPContext';
 import { DesignJob, DesignJobStatus } from '../../../types/designer';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { formatDate } from '../../../lib/utils';
+import { ShareToNestingModal } from '../../../components/nesting/ShareToNestingModal';
 import {
   Palette,
   CheckCircle2,
@@ -71,6 +72,7 @@ export default function DesignJobsPage() {
 
   // View / Preview Modal State
   const [previewJob, setPreviewJob] = useState<DesignJob | null>(null);
+  const [nestingShareJobId, setNestingShareJobId] = useState<string>('');
 
   useEffect(() => {
     setMounted(true);
@@ -1098,6 +1100,15 @@ export default function DesignJobsPage() {
                 <span>Upload / Update Files</span>
               </button>
 
+              <button
+                type="button"
+                onClick={() => setNestingShareJobId(previewJob.id)}
+                className="px-4 py-2 bg-white border border-slate-200 hover:border-crm-brand-600 text-crm-brand-700 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
+              >
+                <Layers className="w-4 h-4" />
+                <span>Share to Nesting</span>
+              </button>
+
               <div className="flex items-center gap-2">
                 {previewJob.status !== 'approved' && previewJob.status !== 'released_to_production' && !previewJob.completedDate && (
                   <button
@@ -1124,6 +1135,11 @@ export default function DesignJobsPage() {
           </div>
         </div>
       )}
+      <ShareToNestingModal
+        isOpen={!!nestingShareJobId}
+        designJobId={nestingShareJobId || undefined}
+        onClose={() => setNestingShareJobId('')}
+      />
     </div>
   );
 }
