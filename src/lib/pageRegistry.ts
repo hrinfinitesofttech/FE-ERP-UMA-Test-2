@@ -66,6 +66,7 @@ export const PAGE_REGISTRY: ModuleDef[] = [
     id: 'designer',
     name: 'Design & Engineering',
     pages: [
+      { key: 'designer.dashboard', label: 'Design Dashboard', href: '/designer', readOnly: true },
       { key: 'designer.jobs', label: 'Design Jobs', href: '/designer/jobs' },
       { key: 'designer.bom', label: 'BOM', href: '/designer/bom' },
     ],

@@ -246,7 +246,9 @@ export function Sidebar() {
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     if (pathname === href) return true;
-    if (href === '/crm') return pathname === '/crm';
+    if (href === '/crm' || href === '/designer') return pathname === href;
+    // Nesting dashboard / job pages: highlighted for /nesting and /nesting/<job>, but not for its two report pages
+    if (href === '/nesting') return !pathname.startsWith('/nesting/production-review') && !pathname.startsWith('/nesting/material-estimate') && pathname.startsWith('/nesting');
     return pathname.startsWith(href + '/');
   };
 
@@ -352,6 +354,34 @@ export function Sidebar() {
           <LayoutDashboard className={cn('w-4 h-4 flex-shrink-0', isActive('/') ? 'text-white' : 'text-crm-brand-700')} />
           {!sidebarCollapsed && <span>Dashboard</span>}
         </Link>
+
+        {/* HRMS — personal self-service (attendance, leave, salary) for every employee, shown right under Dashboard */}
+        {!isSuperAdmin && (
+          <div className="my-1.5 py-1 px-1 bg-[#E8EBF3] rounded-xl border border-[#D3D9E8] space-y-0.5">
+            {!sidebarCollapsed && (
+              <div className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-crm-brand-800 flex items-center justify-between">
+                <span>HRMS</span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-crm-brand-100 text-crm-brand-700">
+                  {currentUser?.roleType === 'department_manager' ? 'Manager' : 'Staff'}
+                </span>
+              </div>
+            )}
+            {[
+              { href: '/my/dashboard', label: 'HRMS Dashboard', Icon: LayoutDashboard },
+              { href: '/my/attendance', label: 'My Attendance', Icon: Clock },
+              { href: '/my/leaves', label: 'Leave Management', Icon: FileCheck2 },
+              { href: '/my/missed-punch', label: 'Missed Punch', Icon: Fingerprint },
+              { href: '/my/overtime', label: 'Overtime', Icon: Timer },
+              { href: '/my/holidays', label: 'Holiday Calendar', Icon: CalendarDays },
+              { href: '/my/payslips', label: 'Salary Slips', Icon: Banknote },
+            ].map(({ href, label, Icon }) => (
+              <Link key={href} href={href} className={subNavItemClass(href)}>
+                <Icon className="w-3.5 h-3.5 flex-shrink-0 text-crm-brand-700" />
+                {!sidebarCollapsed && <span>{label}</span>}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* 1. CRM MODULE (MODULE 1 BUSINESS CORE) */}
         {hasModule('crm') && (
@@ -575,6 +605,12 @@ export function Sidebar() {
 
           {(designerOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+              {pageVisible('/designer') && (
+<Link href="/designer" className={subNavItemClass('/designer')}>
+                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>Design Dashboard</span>}
+              </Link>
+)}
               {pageVisible('/designer/jobs') && (
 <Link href="/designer/jobs" className={subNavItemClass('/designer/jobs')}>
                 <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
@@ -632,7 +668,7 @@ export function Sidebar() {
               {pageVisible('/nesting') && (
 <Link href="/nesting" className={subNavItemClass('/nesting')}>
                 <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
-                {!sidebarCollapsed && <span>Nesting Jobs</span>}
+                {!sidebarCollapsed && <span>Nesting Dashboard & Jobs</span>}
               </Link>
 )}
               {pageVisible('/nesting/production-review') && (
@@ -1760,32 +1796,6 @@ export function Sidebar() {
             </div>
           )}
         </div>
-        )}
-        {/* MY WORKSPACE — personal self-service for the logged-in employee (always last) */}
-        {!isSuperAdmin && (
-          <div className="mt-3 py-1 px-1 bg-[#E8EBF3] rounded-xl border border-[#D3D9E8] space-y-0.5">
-            {!sidebarCollapsed && (
-              <div className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-crm-brand-800 flex items-center justify-between">
-                <span>My Workspace</span>
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-crm-brand-100 text-crm-brand-700">
-                  {currentUser?.roleType === 'department_manager' ? 'Manager' : 'Staff'}
-                </span>
-              </div>
-            )}
-            {[
-              { href: '/my/attendance', label: 'My Attendance', Icon: Clock },
-              { href: '/my/leaves', label: 'Leave Management', Icon: FileCheck2 },
-              { href: '/my/missed-punch', label: 'Missed Punch', Icon: Fingerprint },
-              { href: '/my/overtime', label: 'Overtime', Icon: Timer },
-              { href: '/my/holidays', label: 'Holiday Calendar', Icon: CalendarDays },
-              { href: '/my/payslips', label: 'Salary Slips', Icon: Banknote },
-            ].map(({ href, label, Icon }) => (
-              <Link key={href} href={href} className={subNavItemClass(href)}>
-                <Icon className="w-3.5 h-3.5 flex-shrink-0 text-crm-brand-700" />
-                {!sidebarCollapsed && <span>{label}</span>}
-              </Link>
-            ))}
-          </div>
         )}
       </div>
 

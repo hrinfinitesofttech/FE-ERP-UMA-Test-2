@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useERP } from '../../context/ERPContext';
+import { DepartmentShortcuts } from '../../components/dashboard/DepartmentShortcuts';
 import { formatCurrency } from '../../lib/utils';
 import {
   Users,
@@ -75,6 +76,7 @@ export default function CRMDashboardPage() {
 
   return (
     <div className="space-y-4 md:space-y-5 text-xs pb-10">
+      <DepartmentShortcuts moduleId="crm" bare />
       {/* Dashboard Top Banner */}
       <div className="bg-gradient-to-r from-[color:var(--crm-brand-50)] via-[#EDF1FA] to-[#E3EAF8] p-5 sm:p-6 rounded-2xl border border-[#D4DAE8] text-[color:var(--crm-text-primary)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
         <div>

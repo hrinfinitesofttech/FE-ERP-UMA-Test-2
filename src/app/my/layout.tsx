@@ -3,11 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Clock, FileCheck2, Fingerprint, Timer, CalendarDays, Banknote } from 'lucide-react';
+import { Clock, FileCheck2, Fingerprint, Timer, CalendarDays, Banknote, LayoutDashboard } from 'lucide-react';
 import { useERP } from '@/context/ERPContext';
 import { cn } from '@/lib/utils';
 
 const TABS = [
+  { href: '/my/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
   { href: '/my/attendance', label: 'Attendance', Icon: Clock },
   { href: '/my/leaves', label: 'Leave', Icon: FileCheck2 },
   { href: '/my/missed-punch', label: 'Missed Punch', Icon: Fingerprint },
@@ -24,7 +25,7 @@ export default function MyWorkspaceLayout({ children }: { children: React.ReactN
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-xl font-extrabold tracking-tight text-[color:var(--crm-text-primary)]">My Workspace</h1>
+          <h1 className="text-xl font-extrabold tracking-tight text-[color:var(--crm-text-primary)]">HRMS</h1>
           <p className="text-xs text-[color:var(--crm-text-secondary)]">
             {currentUser?.name || 'Employee'}
             {currentUser?.id ? ` · ${currentUser.id}` : ''} — only your own records are shown here.
