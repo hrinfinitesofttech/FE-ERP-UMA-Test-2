@@ -1352,6 +1352,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         designation: item.designation || '',
         mobile: cleanMobile,
         altMobile: item.altMobile || item.alt_mobile || '',
+        additionalContacts: Array.isArray(item.additionalContacts) ? item.additionalContacts : (Array.isArray(item.additional_contacts) ? item.additional_contacts : []),
         email: item.email || '',
         whatsapp: item.whatsapp || '',
         productName: (product && product !== 'Equipment' && product !== 'Industrial Process Equipment' && product !== 'Process Equipment') ? product : (item.productName && item.productName !== 'Equipment' && item.productName !== 'Industrial Process Equipment' ? item.productName : ''),

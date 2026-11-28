@@ -233,6 +233,7 @@ export default function QuotationsListPage() {
         addNewLabel="Create New Quotation"
         addNewHref="/crm/quotations/new"
         onExport={handleExportCSV}
+        onRowClick={(q) => router.push(`/crm/quotations/${q.id}`)}
       />
     </div>
   );

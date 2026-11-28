@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../../context/ERPContext';
+import { AddContactButton, ExtraContactRows, cleanExtraContacts, validateExtraContacts } from '../../../../components/crm/ExtraContactNumbers';
 import { toast } from '@/context/ToastContext';
 import { StatusBadge } from '../../../../components/workflow/StatusBadge';
 import { formatCurrency, formatDate } from '../../../../lib/utils';
@@ -212,6 +213,7 @@ export default function LeadDetailPage() {
       companyName: lead.companyName && lead.companyName !== 'Valued Customer' ? lead.companyName : (resolvedCompanyName || ''),
       contactPerson: lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact' ? lead.contactPerson : (resolvedContactPerson || ''),
       mobile: resolvedMobile || lead.mobile || '',
+      additionalContacts: Array.isArray(lead.additionalContacts) ? [...lead.additionalContacts] : [],
       email: resolvedEmail || lead.email || '',
       address: resolvedAddress || lead.address || '',
       city: lead.city || '',
@@ -268,8 +270,15 @@ export default function LeadDetailPage() {
       return;
     }
 
+    const extraErr = validateExtraContacts(editFormData.additionalContacts, editFormData.mobile || '');
+    if (extraErr) {
+      toast.warning('Check contact numbers', extraErr);
+      return;
+    }
+
     const assignedEmp = allEmployees.find((emp) => emp.id === editFormData.assignedSalesPersonId);
     const updatePayload: Partial<Lead> = {
+      additionalContacts: cleanExtraContacts(editFormData.additionalContacts, (editFormData.mobile || '').trim()),
       companyName: editFormData.companyName?.trim(),
       contactPerson: editFormData.contactPerson?.trim(),
       mobile: editFormData.mobile?.trim(),
@@ -464,6 +473,9 @@ export default function LeadDetailPage() {
           <div>
             <span className="text-[color:var(--crm-text-secondary)] block">Phone & WhatsApp</span>
             <span className="font-bold text-slate-800 dark:text-[color:var(--crm-text-secondary)]">{resolvedMobile || lead.mobile || '-'}</span>
+            {(lead.additionalContacts || []).map((n) => (
+              <span key={n} className="block font-bold text-slate-800 dark:text-[color:var(--crm-text-secondary)]">{n}</span>
+            ))}
             <span className="text-[color:var(--crm-text-secondary)] block">{resolvedEmail || lead.email || '-'}</span>
           </div>
           <div>
@@ -839,14 +851,25 @@ export default function LeadDetailPage() {
                     <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                       Number (Mobile Contact) <span className="text-rose-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      required
-                      maxLength={10}
-                      value={editFormData.mobile || ''}
-                      onChange={(e) => handleEditChange('mobile', e.target.value)}
-                      placeholder="9825012345"
-                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-mono font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-2 focus:ring-[#1F3FB0]/20 focus:border-[color:var(--crm-brand-700)]"
+                    <div className="flex">
+                      <input
+                        type="text"
+                        required
+                        maxLength={10}
+                        value={editFormData.mobile || ''}
+                        onChange={(e) => handleEditChange('mobile', e.target.value)}
+                        placeholder="9825012345"
+                        className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-mono font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-2 focus:ring-[#1F3FB0]/20 focus:border-[color:var(--crm-brand-700)]"
+                      />
+                      <AddContactButton
+                        count={(editFormData.additionalContacts || []).length}
+                        onAdd={() => handleEditChange('additionalContacts', [...(editFormData.additionalContacts || []), ''])}
+                      />
+                    </div>
+                    <ExtraContactRows
+                      value={editFormData.additionalContacts || []}
+                      onChange={(next) => handleEditChange('additionalContacts', next)}
+                      primary={editFormData.mobile || ''}
                     />
                   </div>
                 </div>

@@ -57,8 +57,6 @@ function EnquiryFormContent() {
   const [quantity, setQuantity] = useState<number | ''>('');
   const [requirement, setRequirement] = useState('');
   const [expectedDelivery, setExpectedDelivery] = useState('');
-  const [assignedPersonId, setAssignedPersonId] = useState(allStaff[0]?.id || 'EMP-001');
-  const [status, setStatus] = useState<Enquiry['status']>('new');
 
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,8 +127,6 @@ function EnquiryFormContent() {
           setExpectedDelivery('');
         }
 
-        setAssignedPersonId(enq.assignedPersonId || allStaff[0]?.id || 'EMP-001');
-        setStatus(enq.status || 'new');
 
         if (targetLeadId) {
           setSelectedLeadId(targetLeadId);
@@ -239,10 +235,12 @@ function EnquiryFormContent() {
     setIsSubmitting(true);
 
     try {
-      const assigned = allStaff.find((s) => s.id === assignedPersonId);
-      const assignedName = assigned
-        ? assigned.name || `${assigned.firstName || ''} ${assigned.lastName || ''}`.trim()
-        : currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Pravin Patel';
+      // No engineer / status field on this form: a new enquiry belongs to the person who creates it
+      // and starts as "new"; editing an existing enquiry never changes its engineer or status.
+      const creatorId = currentUser?.id || '';
+      const creatorName = currentUser
+        ? (currentUser.name || `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.username || '')
+        : '';
 
       if (existingEnquiry) {
         updateEnquiry(existingEnquiry.id, {
@@ -256,9 +254,6 @@ function EnquiryFormContent() {
           requirement: requirement.trim() || `Enquiry for ${machineProduct.trim()}`,
           specification: requirement.trim(),
           expectedDelivery,
-          assignedPersonId,
-          assignedPersonName: assignedName,
-          status,
         });
       } else {
         addEnquiry({
@@ -272,9 +267,9 @@ function EnquiryFormContent() {
           requirement: requirement.trim() || `Enquiry for ${machineProduct.trim()}`,
           specification: requirement.trim(),
           expectedDelivery,
-          assignedPersonId,
-          assignedPersonName: assignedName,
-          status: status || 'new',
+          assignedPersonId: creatorId,
+          assignedPersonName: creatorName,
+          status: 'new',
         });
       }
 
@@ -336,15 +331,13 @@ function EnquiryFormContent() {
 
             {/* Quick Auto-fill from Leads or Registered Customers */}
             <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                Auto-fill from Sales Lead or Customer (Optional)
-              </label>
               <select
+                aria-label="Select Lead"
                 value={selectedEntityVal}
                 onChange={(e) => handleEntitySelect(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15 transition"
               >
-                <option value="">-- Select from Leads or Customers to Auto-fill --</option>
+                <option value="">Select Lead</option>
                 <optgroup label="Sales Leads">
                   {availableLeads.map((l) => (
                     <option key={`lead:${l.id}`} value={`lead:${l.id}`}>
@@ -443,7 +436,7 @@ function EnquiryFormContent() {
                 />
               </div>
 
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
                   Quantity <span className="text-rose-500">*</span>
                 </label>
@@ -465,24 +458,6 @@ function EnquiryFormContent() {
                 />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Status
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-purple-600"
-                >
-                  <option value="new">New / Fresh</option>
-                  <option value="under_review">Under Review</option>
-                  <option value="technical_review">Technical Review</option>
-                  <option value="quotation_ready">Quotation Ready</option>
-                  <option value="quotation_sent">Quotation Sent</option>
-                  <option value="converted">Converted</option>
-                  <option value="closed">Closed</option>
-                </select>
-              </div>
             </div>
 
             {/* Technical Specifications & Scope Description */}
@@ -500,7 +475,7 @@ function EnquiryFormContent() {
               />
             </div>
 
-            {/* Target Delivery Date & Assigned Engineer */}
+            {/* Target Delivery Date */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
@@ -515,23 +490,6 @@ function EnquiryFormContent() {
                 />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
-                  <User className="w-3.5 h-3.5 text-purple-700" />
-                  <span>Assigned Sales / Technical Engineer</span>
-                </label>
-                <select
-                  value={assignedPersonId}
-                  onChange={(e) => setAssignedPersonId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-purple-600"
-                >
-                  {allStaff.map((staff) => (
-                    <option key={staff.id} value={staff.id}>
-                      {staff.name || `${staff.firstName || ''} ${staff.lastName || ''}`.trim() || staff.id} ({staff.designation || staff.role || 'Sales'})
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
           </div>
 

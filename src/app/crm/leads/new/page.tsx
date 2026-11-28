@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../../context/ERPContext';
 import { LeadStatus, LeadSource } from '../../../../types/crm';
+import { AddContactButton, ExtraContactRows, cleanExtraContacts, validateExtraContacts } from '../../../../components/crm/ExtraContactNumbers';
 import {
   Building2,
   User,
@@ -50,6 +51,8 @@ function NewLeadForm() {
     address: '',
   });
 
+  const [extraContacts, setExtraContacts] = useState<string[]>([]);
+  const extraContactsError = validateExtraContacts(extraContacts, formData.mobile);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -125,7 +128,7 @@ function NewLeadForm() {
     if (isSubmitting) return;
     setSubmitAttempted(true);
 
-    if (!validateAll()) {
+    if (!validateAll() || extraContactsError) {
       return;
     }
 
@@ -147,6 +150,7 @@ function NewLeadForm() {
         pincode: '',
         whatsapp: formData.mobile.trim(),
         altMobile: '',
+        additionalContacts: cleanExtraContacts(extraContacts, formData.mobile.trim()),
         industry: '',
         designation: '',
         machineType: '',
@@ -326,9 +330,14 @@ function NewLeadForm() {
                         : 'border-[color:var(--crm-border-default)] focus:border-[color:var(--crm-brand-700)]'
                     }`}
                   />
+                  <AddContactButton count={extraContacts.length} onAdd={() => setExtraContacts((l) => [...l, ''])} />
                 </div>
                 {touched.mobile && errors.mobile && (
                   <p className="text-[11px] text-rose-600 mt-1 font-medium">{errors.mobile}</p>
+                )}
+                <ExtraContactRows value={extraContacts} onChange={setExtraContacts} primary={formData.mobile} />
+                {submitAttempted && extraContactsError && (
+                  <p className="text-[11px] text-rose-600 mt-1 font-medium">{extraContactsError}</p>
                 )}
               </div>
 

@@ -47,6 +47,8 @@ export interface ERPListPageLayoutProps<T> {
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   onView?: (item: T) => void;
+  /** Clicking anywhere on a row (except on its own buttons / links) opens the record. */
+  onRowClick?: (item: T) => void;
   isLoading?: boolean;
   extraHeaderActions?: React.ReactNode;
   filterDrawerContent?: React.ReactNode;
@@ -68,6 +70,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
   onEdit,
   onDelete,
   onView,
+  onRowClick,
   isLoading = false,
   extraHeaderActions,
   filterDrawerContent,
@@ -412,7 +415,17 @@ export function ERPListPageLayout<T extends Record<string, any>>({
                   return (
                     <tr
                       key={key}
-                      className="hover:bg-[#F8FAFC] transition-colors duration-150 group"
+                      onClick={
+                        onRowClick
+                          ? (ev) => {
+                              // buttons, links and form controls inside the row keep their own action
+                              if ((ev.target as HTMLElement).closest('a,button,input,select,textarea,label,[data-no-row-click]')) return;
+                              if (window.getSelection()?.toString()) return; // user is selecting text
+                              onRowClick(row);
+                            }
+                          : undefined
+                      }
+                      className={cn('hover:bg-[#F8FAFC] transition-colors duration-150 group', onRowClick && 'cursor-pointer')}
                     >
                       {initialColumns
                         .filter((col) => visibleColumnKeys[col.key] !== false)

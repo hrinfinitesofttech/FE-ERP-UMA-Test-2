@@ -401,6 +401,14 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                 <Phone className="w-2.5 h-2.5 text-[#47536E]" /> {lead.mobile}
               </a>
             ) : null}
+            {(lead.additionalContacts || []).length > 0 && (
+              <span
+                title={(lead.additionalContacts || []).join(', ')}
+                className="font-mono text-[10px] text-[color:var(--crm-text-secondary)] bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] px-1.5 py-0.5 rounded shrink-0"
+              >
+                +{(lead.additionalContacts || []).length}
+              </span>
+            )}
           </div>
 
           {lead.address ? (

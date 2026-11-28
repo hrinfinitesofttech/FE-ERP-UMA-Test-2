@@ -183,6 +183,8 @@ export interface Lead {
   designation: string;
   mobile: string;
   altMobile?: string;
+  /** extra contact numbers added with the + button on the lead form */
+  additionalContacts?: string[];
   email: string;
   whatsapp?: string;
   productName: string;

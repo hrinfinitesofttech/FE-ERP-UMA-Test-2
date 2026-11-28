@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../../context/ERPContext';
+import { toast } from '../../../../context/ToastContext';
 import {
   ArrowLeft,
   FileCheck2,
@@ -135,7 +136,6 @@ function QuotationFormContent() {
   // Initial Item details
   const initProductName = matchedEnquiry?.machineProduct || matchedLead?.productName || '';
   const initDescLines = [
-    matchedLead?.companyName ? `New lead registered for ${matchedLead.companyName} by ${matchedLead.contactPerson || 'sales'}` : '',
     matchedEnquiry?.specification || matchedLead?.requirementDescription || '',
     matchedEnquiry?.capacity ? `Capacity: ${matchedEnquiry.capacity}` : '',
     matchedEnquiry?.materialGrade ? `MOC: ${matchedEnquiry.materialGrade}` : '',
@@ -152,7 +152,7 @@ function QuotationFormContent() {
       id: 'item-1',
       productName: initProductName || 'General Inquiry / Process Equipment',
       description: initDescLines.join(' • '),
-      descriptionLines: initDescLines.length > 0 ? initDescLines : ['Standard technical specifications'],
+      descriptionLines: initDescLines.length > 0 ? initDescLines : [''],
       quantity: initQty,
       unit: matchedEnquiry?.unitOfMeasure || 'Nos',
       rate: initRate,
@@ -217,7 +217,7 @@ function QuotationFormContent() {
         if (l.capacity || l.machineType) {
           lines.push([l.capacity ? `Capacity: ${l.capacity}` : '', l.machineType ? `Type: ${l.machineType}` : ''].filter(Boolean).join(', '));
         }
-        if (lines.length === 0) lines.push(`Standard proposal for ${l.companyName}`);
+        if (lines.length === 0) lines.push('');
 
         setItems([
           {
@@ -263,11 +263,6 @@ function QuotationFormContent() {
 
         const prodName = enq.machineProduct || 'Process Equipment';
         const lines: string[] = [];
-        if (enq.leadId) {
-          if (l?.companyName) {
-            lines.push(`New lead registered for ${l.companyName} by ${l.contactPerson || enq.contactPerson || 'sales'}`);
-          }
-        }
         if (enq.specification) {
           lines.push(enq.specification);
         }
@@ -281,7 +276,7 @@ function QuotationFormContent() {
           );
         }
         if (lines.length === 0) {
-          lines.push('Standard technical specifications');
+          lines.push('');
         }
 
         const q = Number(enq.quantity) || 1;
@@ -421,7 +416,7 @@ function QuotationFormContent() {
 
     const defaultLines = preset?.description
       ? preset.description.split(' • ').map((s) => s.trim()).filter(Boolean)
-      : ['Standard technical specifications'];
+      : [''];
 
     setItems((prev) => [
       ...prev,
@@ -490,8 +485,24 @@ function QuotationFormContent() {
     enquiries.find((e) => e.id === selectedEnquiryId || e.enquiryNo === selectedEnquiryId) ||
     matchedEnquiry;
 
+  const [priceAttempted, setPriceAttempted] = useState(false);
+  const itemMissingPrice = (it: FormLineItem) => !(Number(it.rate) > 0);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Price (Unit Rate) is mandatory for every machine / item: no quotation without it
+    const missing = items.filter(itemMissingPrice);
+    if (missing.length > 0) {
+      setPriceAttempted(true);
+      toast.error(
+        missing.length === 1
+          ? 'Enter the Unit Rate (price) of the item. A quotation cannot be created without a price.'
+          : `Enter the Unit Rate (price) of all ${missing.length} items. A quotation cannot be created without prices.`,
+        'Price is required'
+      );
+      return;
+    }
     const cust = customers.find((c) => c.id === customerId);
     const activeLead = leads.find((l) => l.id === selectedLeadId || l.leadNo === selectedLeadId) || matchedLead;
 
@@ -875,7 +886,7 @@ function QuotationFormContent() {
                             }
                             placeholder={
                               lineIdx === 0
-                                ? 'Standard technical specifications'
+                                ? 'Technical specification'
                                 : 'Shell thk, dish ends, agitator drive, motor rating...'
                             }
                             className="w-full px-3.5 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-[color:var(--crm-text-primary)]"
@@ -915,10 +926,13 @@ function QuotationFormContent() {
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">
-                        Unit Rate (₹)
+                        Unit Rate (₹) <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="number"
+                        min={0}
+                        required
+                        placeholder="Price"
                         value={item.rate}
                         onChange={(e) =>
                           handleItemChange(
@@ -927,8 +941,13 @@ function QuotationFormContent() {
                             e.target.value === '' ? '' : Number(e.target.value)
                           )
                         }
-                        className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs font-mono font-bold text-[color:var(--crm-text-primary)]"
+                        className={`w-full px-3 py-2 bg-white border rounded-xl text-xs font-mono font-bold text-[color:var(--crm-text-primary)] ${
+                          priceAttempted && itemMissingPrice(item) ? 'border-rose-500 ring-2 ring-rose-200' : 'border-[color:var(--crm-border-default)]'
+                        }`}
                       />
+                      {priceAttempted && itemMissingPrice(item) && (
+                        <p className="text-[11px] text-rose-600 mt-1 font-semibold">Price is required</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">
